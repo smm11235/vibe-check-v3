@@ -7,11 +7,11 @@ import { isBaseQuestion, isComboQuestion } from '@/hooks/useQuizEngine';
 
 /** Distance threshold for selection (position-only, no velocity) */
 const SWIPE_THRESHOLD_X = 110;
-const SWIPE_THRESHOLD_Y = 90;
+const SWIPE_THRESHOLD_Y = 150;
 
 /** Minimum physical offset to even consider a swipe (prevents pure-velocity triggers) */
 const MIN_SWIPE_OFFSET_X = 35;
-const MIN_SWIPE_OFFSET_Y = 30;
+const MIN_SWIPE_OFFSET_Y = 60;
 
 /**
  * Velocity contribution factor: px/s × this = effective distance bonus.
@@ -22,7 +22,7 @@ const VELOCITY_FACTOR = 0.15;
 
 /** Haptic fires at a shorter distance than selection as "getting close" feedback */
 const HAPTIC_THRESHOLD_X = 80;
-const HAPTIC_THRESHOLD_Y = 60;
+const HAPTIC_THRESHOLD_Y = 100;
 
 const TAP_THRESHOLD = 5;
 const MAX_ROTATION = 8;
@@ -110,10 +110,19 @@ function getQuestionFontSize(text: string): string {
 	return 'text-[26px]';
 }
 
-/** Responsive font size for revealed answer text (larger since only one shows at a time) */
+/** Responsive font size for revealed answer text — just below question size */
 function getAnswerFontSize(text: string): string {
-	if (text.length <= 30) return 'text-[30px]';
+	if (text.length <= 25) return 'text-[36px]';
+	if (text.length <= 50) return 'text-[28px]';
 	return 'text-[24px]';
+}
+
+/** Strip the leading emoji from option text (it's already shown in the emoji row) */
+function stripLeadingEmoji(text: string, emoji: string): string {
+	if (text.startsWith(emoji)) {
+		return text.slice(emoji.length).trimStart();
+	}
+	return text;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -469,7 +478,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 							className="absolute inset-0 flex items-center justify-center pointer-events-none"
 							style={{ opacity: downArrowOpacity }}
 						>
-							<span className="text-[24px] text-text-muted font-bold leading-none">↓</span>
+							<span className="text-[44px] text-text-muted font-bold leading-none">↓</span>
 						</motion.div>
 
 						{/* Left answer — revealed when dragging left (horizontal dominant) */}
@@ -477,8 +486,8 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 							className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
 							style={{ opacity: leftAnswerOpacity }}
 						>
-							<p className={`font-display ${getAnswerFontSize(leftOption.text)} leading-[1.2] text-text text-center`}>
-								{leftOption.text}
+							<p className={`font-display ${getAnswerFontSize(stripLeadingEmoji(leftOption.text, leftOption.emoji))} leading-[1.2] text-text text-center`}>
+								{stripLeadingEmoji(leftOption.text, leftOption.emoji)}
 							</p>
 						</motion.div>
 
@@ -487,8 +496,8 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 							className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
 							style={{ opacity: rightAnswerOpacity }}
 						>
-							<p className={`font-display ${getAnswerFontSize(rightOption.text)} leading-[1.2] text-text text-center`}>
-								{rightOption.text}
+							<p className={`font-display ${getAnswerFontSize(stripLeadingEmoji(rightOption.text, rightOption.emoji))} leading-[1.2] text-text text-center`}>
+								{stripLeadingEmoji(rightOption.text, rightOption.emoji)}
 							</p>
 						</motion.div>
 
