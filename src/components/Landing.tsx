@@ -11,7 +11,7 @@ interface LandingProps {
 export function Landing({ onStart }: LandingProps) {
 	return (
 		<motion.div
-			className="flex-1 flex flex-col items-center justify-center px-5 text-center"
+			className="flex-1 flex flex-col items-center justify-center px-5 text-center relative"
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			exit={{ opacity: 0, y: -20 }}
@@ -60,7 +60,7 @@ export function Landing({ onStart }: LandingProps) {
 				Let's Go
 			</button>
 
-			<p className="text-text-muted text-[11px] mt-auto pb-4 opacity-50">
+			<p className="absolute bottom-4 text-text-muted text-[11px] opacity-50">
 				{__APP_VERSION__}
 			</p>
 		</motion.div>
