@@ -44,13 +44,14 @@ Reference for visual design decisions. All values should be implemented as Tailw
 ### Type Scale
 | Name | Size | Weight | Font | Usage |
 |------|------|--------|------|-------|
-| display | 40px | Bold | NeueBit | Reveal combo type name |
-| hero | 32px | Bold | NeueBit | Landing headline |
-| title | 28px | Bold | NeueBit | Results combo name |
-| h3 | 22px | 500 | RightGrotesk | Question text on cards |
-| body | 17px | 400 | RightGrotesk | Option text on cards |
-| sub | 15px | 400 | RightGrotesk | Descriptions, compatibility text |
-| caption | 12px | 400 | RightGrotesk | Labels, metadata |
+| display | 48px | Bold | NeueBit | Reveal combo type name (typed) |
+| hero | 36px | Bold | NeueBit | Results type header, landing headline |
+| question | 40/32/26px | Bold | NeueBit | Quiz card question text (responsive by length: ≤35/≤70/71+ chars) |
+| answer | 24px | Bold | NeueBit | Quiz card answer options |
+| h3 | 22-24px | Bold | NeueBit | Section headings (Vibe DNA, compatibility tiers) |
+| body | 16-17px | 400 | RightGrotesk | Descriptions, compatibility text |
+| sub | 14-15px | 400 | RightGrotesk | Secondary descriptions, archetype pairs |
+| caption | 12-13px | 400 | RightGrotesk | Labels, metadata, archetype badges |
 | micro | 11px | 400 | RightGrotesk | Swipe hints |
 
 ### Line Heights
@@ -137,10 +138,10 @@ const bouncySpring = { type: "spring", stiffness: 400, damping: 15 };
 ### Quiz Card (iPhone 16 Pro - 393×852)
 - Width: 90% viewport (354px)
 - Max width: 370px
-- Height: 65% viewport (~554px)
-- Top position: 12% from viewport top
+- Height: 60vh (~511px)
+- Position: absolute inset-0 m-auto (centred in container)
 - Background: #1E1E1E
-- Border radius: 20px
+- Border radius: 12px (rounded-xl)
 - Shadow: card shadow
 
 ### Card Stack (depth effect)
@@ -149,11 +150,11 @@ const bouncySpring = { type: "spring", stiffness: 400, damping: 15 };
 - Third card (optional): scale(0.9), translateY(16px), z-index 0, opacity 0.3
 
 ### Progress Bar
-- Height: 4px
-- Position: fixed top, below safe area
+- Height: 5px
+- Position: within quiz flex layout (px-5 pt-4 pb-2)
 - Background: surface-2
 - Fill: archetype gradient
-- Border radius: 2px
+- Border radius: full (rounded-full)
 
 ### Buttons
 - Primary: #FFD60A bg, #0A0A0A text, 48px tall, radius-full, font-weight 600
@@ -167,8 +168,8 @@ const bouncySpring = { type: "spring", stiffness: 400, damping: 15 };
 | Event | Pattern | navigator.vibrate() |
 |-------|---------|---------------------|
 | Swipe threshold reached | Light tap | [10] |
-| Card answer confirmed | Medium tap | [20] |
-| Reveal animation | Heavy + pause + light | [30, 200, 10] |
+| Card answer confirmed | Triple pulse | [15, 30, 10] |
+| Snap back (below threshold) | Micro tap | [3] |
 | Skip | None | - |
 
 ---

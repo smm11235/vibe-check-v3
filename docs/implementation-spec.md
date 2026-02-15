@@ -8,10 +8,10 @@ Target: iPhone 16 Pro (393×852), GitHub Pages deployment.
 
 ### Current Status (Feb 2026)
 - **Phase 1 (Foundation)**: Complete
-- **Phase 2 (Data & Engine)**: Complete — 72 unit tests passing
+- **Phase 2 (Data & Engine)**: Complete — 75 unit tests passing
 - **Phase 3 (Quiz UI)**: Complete — swipeable cards, physics-based exits, emoji reactions, answer randomisation
-- **Phase 4 (Results)**: Complete — reveal animation, results screen, profile prompts, done screen
-- **Phase 5 (Polish)**: In progress — font/contrast pass done, card layout refinements done, further polish ongoing
+- **Phase 4 (Results)**: Complete — reveal animation (with archetype details), compatibility screen, profile prompts, done screen
+- **Phase 5 (Polish)**: In progress — font/contrast pass, card layout, progress bar rework, post-quiz page restructure all done; share card and localStorage remain
 
 ---
 
@@ -80,8 +80,9 @@ All content in TypeScript data files. Scoring engine with unit tests. No UI chan
    Each question has: id, text, optionA (text + emoji + archetype/direction), optionB (text + emoji + archetype/direction)
 
 4. Create compatibility data (src/data/compatibility.ts):
-   - COMPATIBILITY: Record<string, Record<string, string>> - for each combo type, text describing compatibility with each other type
-   - Click/clash lists per type
+   - COMPATIBILITY: Record<ComboTypeId, Record<ComboTypeId, string>> - for each combo type, text describing compatibility with each other type
+   - COMPATIBILITY_TIERS: Record<ComboTypeId, { bestBets, goodToKnow, mightWorkIf }> - each type's compatibility with all 11 others, sorted into three tiers
+   - Click/clash lists per type (in ComboType data)
 
 5. Build scoring engine (src/engine/scoring.ts):
    - initScores(): create initial score state
@@ -101,10 +102,12 @@ All content in TypeScript data files. Scoring engine with unit tests. No UI chan
    - shouldEndPhase3(mirrorScore, phase3Answered): clear winner or 5 asked
 
 8. Build progress calculation (src/engine/progress.ts):
-   - calculateProgress(phase, answered, scores): returns 0-1 float
-   - Phase 1: base (answered/20) + confidence (gaps), max 0.75
-   - Phase 2: 0.75 + (answered/5 * 0.15)
-   - Phase 3: 0.90 + (answered/5 * 0.09)
+   - calculateProgress(phase, questionsAnswered, scores, phase2Answered, phase3Answered, previousProgress): returns 0-1 float
+   - Phase 1: linear+logarithmic blend (q * 0.035 + 0.02 * ln(1+q*2)), caps at 0.75
+   - Phase 2: linear ramp from Phase 1 endpoint toward 0.92 (no fixed starting point)
+   - Phase 3: linear ramp from Phase 2 endpoint toward 0.98 (no fixed starting point)
+   - Enforces: monotonic, min 1% per step, max 10% per step
+   - Note: scores parameter accepted for API compat but not used; progress is purely question-count driven
 
 9. Write unit tests (src/engine/__tests__/):
    - Test scoring: verify +1.0/+0.25 correctly applied
@@ -136,10 +139,11 @@ Playable quiz with swipeable cards, gesture recognition, and phase transitions.
 
 ### Tasks
 1. Build useQuizEngine hook (src/hooks/useQuizEngine.ts):
-   - Manages QuizState
-   - Exposes: currentQuestion, progress, phase, answer(option), skip(), isComplete
+   - Manages QuizState via useReducer
+   - Uses InternalPhase ('phase1' | 'phase2' | 'phase3' | 'complete') separate from app-level Phase
+   - Exposes: currentQuestion, nextQuestion (for card stack), progress, internalPhase, answer(side: 'left' | 'right'), skip(), isComplete, result, questionsAnswered, scores
    - Handles phase transitions internally (seamless to consumer)
-   - Computes final result when complete
+   - Computes final result when complete (including mirror-flip score adjustment for consistent percentages)
 
 2. Build QuizCard component (src/components/QuizCard.tsx):
    - Framer Motion drag gestures: left = Option A, right = Option B, up = skip
@@ -209,49 +213,46 @@ Reveal animation, results display, archetype detail, and profile prompt selectio
 
 ### Tasks
 1. Build RevealAnimation component (src/components/RevealAnimation.tsx):
-   - Screen goes black (0.5s fade)
-   - Four colored orbs (archetype colors) converge from corners using Framer Motion
-   - Orbs merge into primary archetype color
-   - Combo type name types out letter-by-letter (NeueBit-Bold, 40px, primary color)
-   - Two archetype emojis appear (e.g., "⚡📚")
-   - Tagline fades in below (RightGrotesk 400, #A0A0A0, 16px)
-   - Confetti effect in primary color
-   - "See Your Results →" button fades in after 2s delay
+   - Two-section layout: hero (viewport-height animation) + scrollable details
+   - Hero section (~65vh):
+     - Four colored orbs converge from corners (spring physics)
+     - "Your archetype is" preface fades in
+     - Combo emoji scales up
+     - Combo type name types out letter-by-letter (NeueBit-Bold, 48px, primary color)
+     - Tagline fades in below
+     - Confetti burst in primary color (35 particles)
+     - "↓ Your stats" scroll hint appears
+   - Details section (scrollable, appears after ~3.5s):
+     - Description card with gradient left border (primary → secondary color)
+     - Primary/Secondary archetype badges
+     - Vibe DNA breakdown: 4 horizontal bars, staggered animation (200ms each)
+     - Karma earned: "YOU EARNED 100 PX" with per-archetype "+N px" rows
+   - CTA: "See Compatibility →"
 
 2. Build ResultsScreen component (src/components/ResultsScreen.tsx):
-   - Scrollable dark background
-   - Section A - Combo Type Card:
-     - Primary color accent border (3px left)
-     - Emojis + combo name (NeueBit-Bold 28px)
-     - Tagline (#FFD60A 16px)
-     - Description (#A0A0A0 14px)
-     - "Primary: [X] + Secondary: [Y]" badges with archetype colors
-   - Section B - Vibe DNA Breakdown:
-     - Four horizontal bar gauges, one per archetype
-     - Animate in with 200ms stagger (Framer Motion)
-     - "[Emoji] Archetype Name — XX%" format
-     - Bars colored by archetype
-   - Section C - Karma Earned:
-     - "YOU EARNED 100 PX" heading (NeueBit-Bold, #FFD60A)
-     - Per-archetype rows with "+N px"
-     - Primary bonus row
-   - Section D - Compatibility Preview:
-     - Mirror type teaser
-     - "Who you click with" / "Who you clash with" lists
-   - Section E - "Show your vibe →" continue button
+   - Compatibility-focused page (archetype details are on the reveal page)
+   - Type header: emoji, name, archetype pair
+   - "What you vibe with" section (from comboType.clickWith)
+   - "What drains you" section (from comboType.clashWith)
+   - Compatibility tiers (from COMPATIBILITY_TIERS):
+     - Best Bets: ~4 types, green marker
+     - Good to Know: ~4 types, yellow marker
+     - Might Work If...: ~3 types, pink marker
+     - Each shows: emoji, type name, archetype pair, full compatibility description
+   - CTA: "Show your vibe →"
 
 3. Build ProfilePrompts component (src/components/ProfilePrompts.tsx):
-   - Vertical list of full-width prompt cards
+   - Photo-first UX with expandable prompt cards
    - Pre-filtered to combo-type-specific prompts (5 prompts from archetype data)
-   - Tap to select a prompt → expands with text input (150 char limit) + optional photo placeholder
-   - "I'll do this later" skip option (#666666)
-   - "Save & Continue" button (#FFD60A)
+   - Tap to expand → photo picker modal (simulated) or text input fallback (150 char limit)
+   - Character count display
+   - "I'll do this later" skip link
+   - "Continue →" CTA after answering or skipping
 
-4. Build Done/CTA screen:
-   - "Your vibe is set" confirmation
-   - Share card option (generate shareable image of result)
-   - "Retake Quiz" option
-   - Link back to results
+4. Build Done/CTA screen (src/components/DoneScreen.tsx):
+   - "Your vibe is set" confirmation with combo emoji + name recap
+   - "Retake Quiz" button (resets all state)
+   - Note: Share card is a stretch goal, not implemented
 
 ### Acceptance Criteria
 - Reveal animation plays smoothly (60fps target)
