@@ -456,7 +456,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 				<div className="flex-1 relative">
 					{/* Left answer — revealed when dragging left (horizontal dominant) */}
 					<motion.div
-						className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
+						className="absolute inset-0 flex items-center justify-center px-14 pointer-events-none"
 						style={{ opacity: leftAnswerOpacity }}
 					>
 						<p className={`font-display ${questionFontSize} leading-[1.1] text-[#D4D4D4] text-center`}>
@@ -466,7 +466,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 
 					{/* Right answer — revealed when dragging right (horizontal dominant) */}
 					<motion.div
-						className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
+						className="absolute inset-0 flex items-center justify-center px-14 pointer-events-none"
 						style={{ opacity: rightAnswerOpacity }}
 					>
 						<p className={`font-display ${questionFontSize} leading-[1.1] text-[#D4D4D4] text-center`}>
@@ -476,10 +476,10 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 
 					{/* Skip text — revealed when dragging down (vertical dominant) */}
 					<motion.div
-						className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
+						className="absolute inset-0 flex items-center justify-center px-14 pointer-events-none"
 						style={{ opacity: skipTextOpacity }}
 					>
-						<p className="font-display text-[22px] text-text-muted text-center">
+						<p className={`font-display ${questionFontSize} leading-[1.1] text-[#D4D4D4] text-center`}>
 							{skipText}
 						</p>
 					</motion.div>
