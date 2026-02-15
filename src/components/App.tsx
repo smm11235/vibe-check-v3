@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Layout } from '@/components/Layout';
 import { Landing } from '@/components/Landing';
-import { Tutorial } from '@/components/Tutorial';
 import { Quiz } from '@/components/Quiz';
 import { RevealAnimation } from '@/components/RevealAnimation';
 import { ResultsScreen } from '@/components/ResultsScreen';
@@ -33,10 +32,9 @@ export function App() {
 	const renderScreen = () => {
 		switch (phase) {
 			case 'landing':
-				return <Landing key="landing" onStart={advance} />;
-
 			case 'tutorial':
-				return <Tutorial key="tutorial" onComplete={advance} />;
+				// Tutorial is merged into Landing; both phases route here
+				return <Landing key="landing" onStart={advance} />;
 
 			case 'phase1':
 			case 'phase2':

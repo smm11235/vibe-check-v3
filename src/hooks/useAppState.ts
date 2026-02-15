@@ -8,7 +8,7 @@ import type { Phase } from '@/data/types';
 
 /** Defines valid transitions from each phase */
 const TRANSITIONS: Record<Phase, Phase | null> = {
-	landing: 'tutorial',
+	landing: 'phase1',
 	tutorial: 'phase1',
 	phase1: 'phase2',
 	phase2: 'phase3',

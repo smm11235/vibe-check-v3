@@ -446,7 +446,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 			{/* Card content: question top, answer middle, emojis bottom */}
 			<div className="flex flex-col h-full">
 				{/* Question: pushed toward top */}
-				<div className="flex items-start justify-center px-7 pt-10">
+				<div className="flex items-start justify-center px-12 pt-10">
 					<p className={`font-display leading-[1.1] text-text text-center ${questionFontSize}`}>
 						{question.text}
 					</p>

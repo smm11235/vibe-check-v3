@@ -5,9 +5,8 @@ interface LandingProps {
 }
 
 /**
- * Landing / intro screen.
- * Will be fleshed out in Phase 3. For now, a functional placeholder with the right
- * visual treatment to validate fonts, colours, and layout.
+ * Landing screen with intro text and swipe instructions.
+ * Combines the original landing and tutorial into a single screen.
  */
 export function Landing({ onStart }: LandingProps) {
 	return (
@@ -22,8 +21,34 @@ export function Landing({ onStart }: LandingProps) {
 				Vibe Check
 			</h1>
 
-			<p className="font-body text-[19px] leading-[1.4] text-text-secondary max-w-[320px] mb-10">
-				Swipe your way through questions to discover your combo type - the unique mix of vibes that makes you, you.
+			<p className="font-body text-[19px] leading-[1.4] text-text-secondary max-w-[320px] mb-8">
+				Swipe your way through questions to discover your combo type - the unique mix of vibes that makes you, you. All in 5 minutes or less!
+			</p>
+
+			{/* Swipe instructions */}
+			<div className="flex flex-col gap-4 mb-6 max-w-[300px]">
+				<div className="flex items-center gap-4">
+					<span className="text-[28px]">👈</span>
+					<p className="font-body text-[18px] text-text-secondary text-left">
+						Swipe left for the first option
+					</p>
+				</div>
+				<div className="flex items-center gap-4">
+					<span className="text-[28px]">👉</span>
+					<p className="font-body text-[18px] text-text-secondary text-left">
+						Swipe right for the second option
+					</p>
+				</div>
+				<div className="flex items-center gap-4">
+					<span className="text-[28px]">👇</span>
+					<p className="font-body text-[18px] text-text-secondary text-left">
+						Swipe down to skip (but try not to!)
+					</p>
+				</div>
+			</div>
+
+			<p className="font-body text-[17px] text-text-secondary mb-8 max-w-[280px]">
+				No wrong answers. Go with your gut.
 			</p>
 
 			<button
@@ -34,10 +59,6 @@ export function Landing({ onStart }: LandingProps) {
 			>
 				Let's Go
 			</button>
-
-			<p className="text-text-muted text-[14px] mt-6">
-				Takes about 5 minutes
-			</p>
 
 			<p className="text-text-muted text-[11px] mt-auto pb-4 opacity-50">
 				{__APP_VERSION__}
