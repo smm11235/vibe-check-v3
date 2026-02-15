@@ -266,7 +266,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 	if (!isTop) {
 		return (
 			<motion.div
-				className="absolute w-[90%] max-w-[370px] h-[60vh] bg-surface rounded-xl shadow-card"
+				className="absolute inset-0 m-auto w-[90%] max-w-[370px] h-[60vh] bg-surface rounded-xl shadow-card"
 				style={{
 					scale: 1 - stackIndex * 0.05,
 					y: stackIndex * 8,
@@ -294,7 +294,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 	return (
 		<motion.div
 			ref={cardRef}
-			className="absolute w-[90%] max-w-[370px] h-[60vh] bg-surface rounded-xl shadow-card overflow-hidden select-none"
+			className="absolute inset-0 m-auto w-[90%] max-w-[370px] h-[60vh] bg-surface rounded-xl shadow-card overflow-hidden select-none"
 			style={{ x, y, rotate, zIndex: 10, touchAction: 'none' }}
 			drag={!isExiting}
 			dragMomentum={false}
@@ -343,41 +343,38 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 					</p>
 				</div>
 
-				{/* Options: lower ~50%, stacked vertically */}
-				<div className="flex-1 flex flex-col justify-center px-6 pb-6 gap-3">
-					{/* Left option (upper position, left-justified with ← arrow) */}
+				{/* Options: lower ~50%, pinned to bottom */}
+				<div className="flex-1 flex flex-col justify-end px-6 pb-6">
+					{/* Left option: arrow above, left-justified */}
 					<motion.div
-						className="flex items-start gap-2.5"
+						className="mb-5"
 						style={{ opacity: leftTextOpacity }}
 					>
 						<span
-							className="text-[18px] mt-0.5 shrink-0 font-bold"
+							className="block text-[16px] font-bold mb-1"
 							style={{ color: leftColour }}
 						>
 							←
 						</span>
-						<p className="font-body text-[20px] leading-[1.3] text-text">
+						<p className="font-body text-[22px] leading-[1.3] text-text">
 							{leftOption.text}
 						</p>
 					</motion.div>
 
-					{/* Subtle divider between options */}
-					<div className="h-px bg-divider/40 mx-2" />
-
-					{/* Right option (lower position, right-justified with → arrow) */}
+					{/* Right option: arrow above, right-justified, anchored to bottom */}
 					<motion.div
-						className="flex items-start gap-2.5 justify-end"
+						className="text-right"
 						style={{ opacity: rightTextOpacity }}
 					>
-						<p className="font-body text-[20px] leading-[1.3] text-text text-right">
-							{rightOption.text}
-						</p>
 						<span
-							className="text-[18px] mt-0.5 shrink-0 font-bold"
+							className="block text-[16px] font-bold mb-1"
 							style={{ color: rightColour }}
 						>
 							→
 						</span>
+						<p className="font-body text-[22px] leading-[1.3] text-text text-right">
+							{rightOption.text}
+						</p>
 					</motion.div>
 				</div>
 			</div>
