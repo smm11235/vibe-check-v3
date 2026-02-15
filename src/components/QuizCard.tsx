@@ -110,13 +110,6 @@ function getQuestionFontSize(text: string): string {
 	return 'text-[26px]';
 }
 
-/** Responsive font size for revealed answer text — just below question size */
-function getAnswerFontSize(text: string): string {
-	if (text.length <= 25) return 'text-[36px]';
-	if (text.length <= 50) return 'text-[28px]';
-	return 'text-[24px]';
-}
-
 /** Strip the leading emoji from option text (it's already shown in the emoji row) */
 function stripLeadingEmoji(text: string, emoji: string): string {
 	if (text.startsWith(emoji)) {
@@ -406,7 +399,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 				transition={{ type: 'spring', stiffness: 300, damping: 30 }}
 			>
 				<div className="flex items-center justify-center h-1/2 px-6 pt-8 opacity-40">
-					<p className={`font-display leading-[1.3] text-text text-center ${getQuestionFontSize(question.text)}`}>
+					<p className={`font-display leading-[1.1] text-text text-center ${getQuestionFontSize(question.text)}`}>
 						{question.text}
 					</p>
 				</div>
@@ -450,67 +443,59 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 				}}
 			/>
 
-			{/* Card content: question top half, emojis/answers bottom half */}
+			{/* Card content: question top, answer middle, emojis bottom */}
 			<div className="flex flex-col h-full">
-				{/* Question: upper ~50% */}
-				<div className="flex-1 flex items-center justify-center px-7 pt-10 pb-2">
-					<p className={`font-display leading-[1.3] text-text text-center ${questionFontSize}`}>
+				{/* Question: pushed toward top */}
+				<div className="flex items-start justify-center px-7 pt-10">
+					<p className={`font-display leading-[1.1] text-text text-center ${questionFontSize}`}>
 						{question.text}
 					</p>
 				</div>
 
-				{/* Lower half: emojis + arrow at rest, answer/skip text on drag */}
-				<div className="flex-1 flex flex-col relative">
-					{/* Emoji row: fixed at top of lower half */}
-					<div className="flex items-center justify-between px-12 pt-3 shrink-0 pointer-events-none">
-						<motion.span className="text-[36px]" style={{ opacity: leftEmojiOpacity }}>
-							{leftOption.emoji}
-						</motion.span>
-						<motion.span className="text-[36px]" style={{ opacity: rightEmojiOpacity }}>
-							{rightOption.emoji}
-						</motion.span>
-					</div>
+				{/* Middle: answer/skip text (centred vertically in remaining space above emojis) */}
+				<div className="flex-1 relative">
+					{/* Left answer — revealed when dragging left (horizontal dominant) */}
+					<motion.div
+						className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
+						style={{ opacity: leftAnswerOpacity }}
+					>
+						<p className={`font-display ${questionFontSize} leading-[1.1] text-[#D4D4D4] text-center`}>
+							{stripLeadingEmoji(leftOption.text, leftOption.emoji)}
+						</p>
+					</motion.div>
 
-					{/* Content area below emojis: arrow, answer texts, skip text (mutually exclusive) */}
-					<div className="flex-1 relative">
-						{/* Down arrow — visible at rest, fades on any drag */}
-						<motion.div
-							className="absolute inset-0 flex items-center justify-center pointer-events-none"
-							style={{ opacity: downArrowOpacity }}
-						>
-							<span className="text-[44px] text-text-muted font-bold leading-none">↓</span>
-						</motion.div>
+					{/* Right answer — revealed when dragging right (horizontal dominant) */}
+					<motion.div
+						className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
+						style={{ opacity: rightAnswerOpacity }}
+					>
+						<p className={`font-display ${questionFontSize} leading-[1.1] text-[#D4D4D4] text-center`}>
+							{stripLeadingEmoji(rightOption.text, rightOption.emoji)}
+						</p>
+					</motion.div>
 
-						{/* Left answer — revealed when dragging left (horizontal dominant) */}
-						<motion.div
-							className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
-							style={{ opacity: leftAnswerOpacity }}
-						>
-							<p className={`font-display ${getAnswerFontSize(stripLeadingEmoji(leftOption.text, leftOption.emoji))} leading-[1.2] text-text text-center`}>
-								{stripLeadingEmoji(leftOption.text, leftOption.emoji)}
-							</p>
-						</motion.div>
+					{/* Skip text — revealed when dragging down (vertical dominant) */}
+					<motion.div
+						className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
+						style={{ opacity: skipTextOpacity }}
+					>
+						<p className="font-display text-[22px] text-text-muted text-center">
+							{skipText}
+						</p>
+					</motion.div>
+				</div>
 
-						{/* Right answer — revealed when dragging right (horizontal dominant) */}
-						<motion.div
-							className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
-							style={{ opacity: rightAnswerOpacity }}
-						>
-							<p className={`font-display ${getAnswerFontSize(stripLeadingEmoji(rightOption.text, rightOption.emoji))} leading-[1.2] text-text text-center`}>
-								{stripLeadingEmoji(rightOption.text, rightOption.emoji)}
-							</p>
-						</motion.div>
-
-						{/* Skip text — revealed when dragging down (vertical dominant) */}
-						<motion.div
-							className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
-							style={{ opacity: skipTextOpacity }}
-						>
-							<p className="font-body text-[22px] text-text-muted text-center italic">
-								{skipText}
-							</p>
-						</motion.div>
-					</div>
+				{/* Bottom: emoji row pinned near bottom edge */}
+				<div className="flex items-center justify-between px-12 pb-[30px] shrink-0 pointer-events-none">
+					<motion.span className="text-[36px]" style={{ opacity: leftEmojiOpacity }}>
+						{leftOption.emoji}
+					</motion.span>
+					<motion.span className="text-[44px] text-text-muted font-bold leading-none" style={{ opacity: downArrowOpacity }}>
+						↓
+					</motion.span>
+					<motion.span className="text-[36px]" style={{ opacity: rightEmojiOpacity }}>
+						{rightOption.emoji}
+					</motion.span>
 				</div>
 			</div>
 		</motion.div>
