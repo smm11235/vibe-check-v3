@@ -272,7 +272,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 									background: `linear-gradient(to bottom, ${primaryColour}, ${secondaryColour})`,
 								}}
 							/>
-							<p className="font-body text-[16px] leading-[1.6] text-text-secondary mb-4">
+							<p className="font-body text-[18px] leading-[1.6] text-text-secondary mb-4">
 								{result.comboType.description}
 							</p>
 							<div className="flex flex-wrap gap-2">
@@ -293,7 +293,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 
 						{/* Vibe DNA Breakdown */}
 						<div className="bg-surface rounded-xl p-5">
-							<h3 className="font-display text-[24px] text-text mb-4">
+							<h3 className="font-display text-[28px] text-text mb-4">
 								Vibe DNA
 							</h3>
 							<div className="space-y-4">
@@ -309,7 +309,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 											transition={{ delay: 0.3 + i * 0.2, duration: 0.4 }}
 										>
 											<span className="text-[20px] w-7">{info.emoji}</span>
-											<span className="font-body text-[16px] text-text w-14">{info.name}</span>
+											<span className="font-body text-[18px] text-text w-14">{info.name}</span>
 											<div className="flex-1 h-[10px] bg-surface-2 rounded-full overflow-hidden">
 												<motion.div
 													className="h-full rounded-full"
@@ -319,7 +319,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 													transition={{ delay: 0.5 + i * 0.2, duration: 0.6, ease: 'easeOut' }}
 												/>
 											</div>
-											<span className="font-body text-[16px] text-text-secondary tabular-nums w-12 text-right">
+											<span className="font-body text-[18px] text-text-secondary tabular-nums w-12 text-right">
 												{pct}%
 											</span>
 										</motion.div>
@@ -330,7 +330,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 
 						{/* Karma Earned */}
 						<div className="bg-surface rounded-xl p-5">
-							<h3 className="font-display text-[24px] text-accent mb-4">
+							<h3 className="font-display text-[28px] text-accent mb-4">
 								YOU EARNED 100 PX
 							</h3>
 							<div className="space-y-3">
@@ -342,7 +342,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 										<div key={archetype} className="flex items-center justify-between">
 											<div className="flex items-center gap-2">
 												<span className="text-[16px]">{info.emoji}</span>
-												<span className="font-body text-[16px] text-text-secondary">
+												<span className="font-body text-[18px] text-text-secondary">
 													{info.name}
 												</span>
 												{isPrimary && (
@@ -352,7 +352,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 												)}
 											</div>
 											<span
-												className="font-body text-[16px] font-medium tabular-nums"
+												className="font-body text-[18px] font-medium tabular-nums"
 												style={{ color: info.color }}
 											>
 												+{karmaPts} px

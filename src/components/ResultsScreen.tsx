@@ -48,11 +48,11 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 
 				{/* Type header */}
 				<div className="text-center mb-2">
-					<span className="text-[40px]">{comboType.emoji}</span>
-					<h2 className="font-display text-[36px] leading-[1.1] text-text mt-2">
+					<span className="text-[48px]">{comboType.emoji}</span>
+					<h2 className="font-display text-[42px] leading-[1.1] text-text mt-2">
 						{comboType.name}
 					</h2>
-					<p className="font-body text-[14px] text-text-muted mt-1">
+					<p className="font-body text-[16px] text-text-muted mt-1">
 						{ARCHETYPES[comboType.primary].name}/{ARCHETYPES[comboType.secondary].name} - Compatibility
 					</p>
 				</div>
@@ -60,14 +60,14 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 				{/* What you vibe with */}
 				{comboType.clickWith.length > 0 && (
 					<div className="bg-surface rounded-xl p-5">
-						<h3 className="font-display text-[22px] text-text mb-3">
+						<h3 className="font-display text-[26px] text-text mb-3">
 							What you vibe with
 						</h3>
-						<div className="space-y-2">
+						<div className="space-y-3">
 							{comboType.clickWith.map((text, i) => (
-								<div key={i} className="flex items-start gap-3 bg-surface-2 rounded-lg p-3">
-									<span className="text-glow text-[16px] mt-0.5 shrink-0">✦</span>
-									<p className="font-body text-[15px] text-text-secondary leading-[1.5]">
+								<div key={i} className="flex items-start gap-3">
+									<span className="text-glow text-[16px] mt-1 shrink-0">✦</span>
+									<p className="font-body text-[17px] text-text-secondary leading-[1.5]">
 										{text}
 									</p>
 								</div>
@@ -79,14 +79,14 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 				{/* What drains you */}
 				{comboType.clashWith.length > 0 && (
 					<div className="bg-surface rounded-xl p-5">
-						<h3 className="font-display text-[22px] text-text mb-3">
+						<h3 className="font-display text-[26px] text-text mb-3">
 							What drains you
 						</h3>
-						<div className="space-y-2">
+						<div className="space-y-3">
 							{comboType.clashWith.map((text, i) => (
-								<div key={i} className="flex items-start gap-3 bg-surface-2 rounded-lg p-3">
-									<span className="text-pulse text-[16px] mt-0.5 shrink-0">✦</span>
-									<p className="font-body text-[15px] text-text-secondary leading-[1.5]">
+								<div key={i} className="flex items-start gap-3">
+									<span className="text-pulse text-[16px] mt-1 shrink-0">✦</span>
+									<p className="font-body text-[17px] text-text-secondary leading-[1.5]">
 										{text}
 									</p>
 								</div>
@@ -102,7 +102,7 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 
 					return (
 						<div key={tier} className="bg-surface rounded-xl p-5">
-							<h3 className="font-display text-[22px] text-text mb-4">
+							<h3 className="font-display text-[26px] text-text mb-4">
 								{config.heading}
 							</h3>
 							<div className="space-y-5">
@@ -117,16 +117,16 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 												<span className={`text-[14px] shrink-0 ${config.markerColour}`}>✦</span>
 												<span className="text-[20px]">{targetType.emoji}</span>
 												<div>
-													<p className="font-body text-[16px] text-text font-medium leading-tight">
+													<p className="font-body text-[18px] text-text font-medium leading-tight">
 														{targetType.name}
 													</p>
-													<p className="font-body text-[12px] text-text-muted">
+													<p className="font-body text-[14px] text-text-muted">
 														{ARCHETYPES[targetType.primary].name}/{ARCHETYPES[targetType.secondary].name}
 													</p>
 												</div>
 											</div>
 											{/* Compatibility description */}
-											<p className="font-body text-[14px] text-text-secondary leading-[1.6] ml-[30px]">
+											<p className="font-body text-[16px] text-text-secondary leading-[1.6] ml-[30px]">
 												{compatText}
 											</p>
 										</div>
