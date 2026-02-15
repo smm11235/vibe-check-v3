@@ -59,11 +59,11 @@ function computeEmojis(config: ReactionConfig): ReactionEmoji[] {
 		emojis.push({
 			id: `p-${i}`,
 			emoji: ARCHETYPE_EMOJIS[boostedArchetype],
-			x: (Math.random() - 0.5) * 120,
-			size: 26 + Math.random() * 16 + Math.min(primaryScore * 1.5, 12),
-			delay: Math.random() * 0.12,
-			floatY: -(80 + Math.random() * 80),
-			duration: 0.5 + Math.random() * 0.3,
+			x: (Math.random() - 0.5) * 160,
+			size: 36 + Math.random() * 20 + Math.min(primaryScore * 2, 16),
+			delay: Math.random() * 0.15,
+			floatY: -(120 + Math.random() * 100),
+			duration: 0.9 + Math.random() * 0.4,
 			rotate: (Math.random() - 0.5) * 30,
 		});
 	}
@@ -77,11 +77,11 @@ function computeEmojis(config: ReactionConfig): ReactionEmoji[] {
 			emojis.push({
 				id: `s-${i}`,
 				emoji: ARCHETYPE_EMOJIS[partialArchetype],
-				x: (Math.random() - 0.5) * 100,
-				size: 18 + Math.random() * 10 + Math.min(partialScore, 8),
-				delay: 0.05 + Math.random() * 0.12,
-				floatY: -(60 + Math.random() * 60),
-				duration: 0.5 + Math.random() * 0.3,
+				x: (Math.random() - 0.5) * 120,
+				size: 28 + Math.random() * 14 + Math.min(partialScore * 1.5, 12),
+				delay: 0.05 + Math.random() * 0.15,
+				floatY: -(80 + Math.random() * 80),
+				duration: 0.9 + Math.random() * 0.4,
 				rotate: (Math.random() - 0.5) * 30,
 			});
 		}
@@ -99,6 +99,9 @@ function computeEmojis(config: ReactionConfig): ReactionEmoji[] {
  * a question. The number and size of emojis scales with cumulative archetype
  * scores — like Zoom reactions but with archetype-specific emojis (⚡🔥🕯️📚).
  *
+ * Uses keyframe opacity [0, 1, 1, 0] so emojis stay fully visible for ~50%
+ * of their animation before fading out. Pop-in scale effect [0.5, 1.15, 1].
+ *
  * Mount with a new `key` each time to replay the animation.
  */
 export function EmojiReaction({ config }: EmojiReactionProps) {
@@ -110,26 +113,27 @@ export function EmojiReaction({ config }: EmojiReactionProps) {
 	if (emojis.length === 0) return null;
 
 	return (
-		<div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+		<div className="absolute inset-0 pointer-events-none z-30">
 			{emojis.map((emoji) => (
 				<motion.div
 					key={emoji.id}
 					className="absolute"
 					style={{
 						left: `calc(50% + ${emoji.x}px)`,
-						top: '45%',
+						top: '40%',
 						fontSize: `${emoji.size}px`,
+						lineHeight: 1,
 					}}
 					initial={{
 						y: 0,
-						opacity: 1,
-						scale: 0.3,
+						opacity: 0,
+						scale: 0.5,
 						rotate: 0,
 					}}
 					animate={{
 						y: emoji.floatY,
-						opacity: 0,
-						scale: 1,
+						opacity: [0, 1, 1, 0],
+						scale: [0.5, 1.15, 1],
 						rotate: emoji.rotate,
 					}}
 					transition={{

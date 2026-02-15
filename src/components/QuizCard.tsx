@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { motion, useMotionValue, useTransform, animate, type PanInfo } from 'framer-motion';
 import type { AnyQuestion } from '@/data/types';
 import { isBaseQuestion, isComboQuestion } from '@/hooks/useQuizEngine';
@@ -41,30 +41,37 @@ interface QuizCardProps {
 
 // ─── Helpers ───
 
-/** Get the display text for option A (left side) */
-function getOptionAText(question: AnyQuestion): string {
-	return question.optionA.text;
+/**
+ * Deterministic pseudo-random from question ID.
+ * Decides whether to swap which option appears on which visual side,
+ * preventing positional bias (e.g., always picking the right option).
+ */
+function shouldSwapOptions(questionId: string): boolean {
+	let hash = 0;
+	for (let i = 0; i < questionId.length; i++) {
+		hash = ((hash << 5) - hash) + questionId.charCodeAt(i);
+		hash |= 0;
+	}
+	return (hash & 1) === 0;
 }
 
-/** Get the display text for option B (right side) */
-function getOptionBText(question: AnyQuestion): string {
-	return question.optionB.text;
-}
-
-/** Get the archetype colour for the left option */
-function getLeftColour(question: AnyQuestion): string {
-	if (isBaseQuestion(question) || isComboQuestion(question)) {
-		return ARCHETYPE_COLOURS[question.optionA.archetype] ?? 'var(--color-accent)';
+/** Get the archetype colour for an option, falling back to accent */
+function getOptionColour(question: AnyQuestion, engineSide: 'left' | 'right'): string {
+	const option = engineSide === 'left' ? question.optionA : question.optionB;
+	if ((isBaseQuestion(question) || isComboQuestion(question)) && 'archetype' in option) {
+		return ARCHETYPE_COLOURS[(option as { archetype: string }).archetype] ?? 'var(--color-accent)';
 	}
 	return 'var(--color-accent)';
 }
 
-/** Get the archetype colour for the right option */
-function getRightColour(question: AnyQuestion): string {
-	if (isBaseQuestion(question) || isComboQuestion(question)) {
-		return ARCHETYPE_COLOURS[question.optionB.archetype] ?? 'var(--color-accent)';
-	}
-	return 'var(--color-accent)';
+/**
+ * Responsive font size based on question text length.
+ * Short questions get a large, impactful size; longer ones scale down to fit.
+ */
+function getQuestionFontSize(text: string): string {
+	if (text.length <= 35) return 'text-[34px]';
+	if (text.length <= 70) return 'text-[28px]';
+	return 'text-[22px]';
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -83,15 +90,38 @@ function haptic(pattern: number | number[]) {
 /**
  * Swipeable quiz card with physics-based exit animations.
  *
- * When swiped past threshold (or tapped), the card flies off-screen using
- * velocity-based physics: faster swipes = faster exit, with natural rotation
- * from the swipe momentum. Cards spring back to centre if released early.
+ * Layout: question in upper half, left option (with ← arrow) in 50-75% zone,
+ * right option (with → arrow) in 75-100% zone. Options use full card width
+ * for better readability.
+ *
+ * Answer sides are randomised per question (deterministic hash of question.id)
+ * to prevent positional bias. The swap is transparent to the engine — onAnswer
+ * always passes the correct engine side ('left' = optionA, 'right' = optionB).
  */
 export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stackIndex }: QuizCardProps) {
 	const cardRef = useRef<HTMLDivElement>(null);
 	const thresholdFiredRef = useRef(false);
 	const [isExiting, setIsExiting] = useState(false);
 	const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	// Randomise which option appears on which side (stable per question)
+	const isSwapped = useMemo(() => shouldSwapOptions(question.id), [question.id]);
+
+	/** Map a visual side to the engine answer side, accounting for randomisation */
+	function resolveAnswer(visualSide: 'left' | 'right'): 'left' | 'right' {
+		if (!isSwapped) return visualSide;
+		return visualSide === 'left' ? 'right' : 'left';
+	}
+
+	// Display data: which option shows on which visual side
+	const leftOption = isSwapped ? question.optionB : question.optionA;
+	const rightOption = isSwapped ? question.optionA : question.optionB;
+	const leftColour = isSwapped
+		? getOptionColour(question, 'right')
+		: getOptionColour(question, 'left');
+	const rightColour = isSwapped
+		? getOptionColour(question, 'left')
+		: getOptionColour(question, 'right');
 
 	// Clean up exit timer on unmount
 	useEffect(() => {
@@ -108,19 +138,19 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 	const rotate = useTransform(x, [-200, 0, 200], [-MAX_ROTATION, 0, MAX_ROTATION]);
 	const leftGlowOpacity = useTransform(x, [-150, -SWIPE_THRESHOLD_X, 0], [0.6, 0.3, 0]);
 	const rightGlowOpacity = useTransform(x, [0, SWIPE_THRESHOLD_X, 150], [0, 0.3, 0.6]);
-	const leftTextOpacity = useTransform(x, [-150, -30, 0], [1, 0.7, 0.55]);
-	const rightTextOpacity = useTransform(x, [0, 30, 150], [0.55, 0.7, 1]);
 	const skipIndicatorOpacity = useTransform(y, [0, -30, -SWIPE_THRESHOLD_Y], [0, 0.3, 0.8]);
 
-	const leftColour = getLeftColour(question);
-	const rightColour = getRightColour(question);
+	// Option opacity: active option brightens, inactive dims
+	const leftTextOpacity = useTransform(
+		x, [-150, -30, 0, 30, 150], [1, 0.85, 0.6, 0.45, 0.35],
+	);
+	const rightTextOpacity = useTransform(
+		x, [-150, -30, 0, 30, 150], [0.35, 0.45, 0.6, 0.85, 1],
+	);
 
 	/**
 	 * Animate the card off-screen with physics-based timing, then fire the callback.
-	 * Uses velocity from the drag gesture to determine exit speed and rotation.
-	 *
-	 * Physics: duration = distance / max(|velocity|, baseSpeed)
-	 * Clamped to [0.15s, 0.4s] for consistent feel.
+	 * Reports the LOGICAL (engine) side to onExitStart for emoji reactions.
 	 */
 	function exitCard(
 		direction: -1 | 0 | 1,
@@ -131,8 +161,13 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 		setIsExiting(true);
 		haptic([15, 30, 10]);
 
-		const side = direction === 0 ? 'up' : direction > 0 ? 'right' : 'left';
-		onExitStart?.(side);
+		// Report the logical (engine) side, not the visual direction
+		if (direction === 0) {
+			onExitStart?.('up');
+		} else {
+			const visualSide: 'left' | 'right' = direction > 0 ? 'right' : 'left';
+			onExitStart?.(resolveAnswer(visualSide));
+		}
 
 		if (direction === 0) {
 			// Skip: fly upward
@@ -191,15 +226,15 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 
 		const { offset, velocity, point } = info;
 
-		// Swipe right → option B
+		// Swipe right → chose the right-side option
 		if (offset.x > SWIPE_THRESHOLD_X) {
-			exitCard(1, velocity.x, velocity.y, () => onAnswer('right'));
+			exitCard(1, velocity.x, velocity.y, () => onAnswer(resolveAnswer('right')));
 			return;
 		}
 
-		// Swipe left → option A
+		// Swipe left → chose the left-side option
 		if (offset.x < -SWIPE_THRESHOLD_X) {
-			exitCard(-1, velocity.x, velocity.y, () => onAnswer('left'));
+			exitCard(-1, velocity.x, velocity.y, () => onAnswer(resolveAnswer('left')));
 			return;
 		}
 
@@ -209,16 +244,16 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 			return;
 		}
 
-		// Tap detection: barely moved
+		// Tap detection: barely moved — left half picks left option, right half picks right
 		if (Math.abs(offset.x) < TAP_THRESHOLD && Math.abs(offset.y) < TAP_THRESHOLD) {
 			if (!cardRef.current) return;
 			const cardRect = cardRef.current.getBoundingClientRect();
 			const cardCenterX = cardRect.left + cardRect.width / 2;
 
 			if (point.x < cardCenterX) {
-				exitCard(-1, 0, 0, () => onAnswer('left'));
+				exitCard(-1, 0, 0, () => onAnswer(resolveAnswer('left')));
 			} else {
-				exitCard(1, 0, 0, () => onAnswer('right'));
+				exitCard(1, 0, 0, () => onAnswer(resolveAnswer('right')));
 			}
 			return;
 		}
@@ -244,8 +279,8 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 				}}
 				transition={{ type: 'spring', stiffness: 300, damping: 30 }}
 			>
-				<div className="flex items-center justify-center h-full px-6 opacity-40">
-					<p className="font-body text-[24px] leading-[1.3] text-text text-center">
+				<div className="flex items-center justify-center h-1/2 px-6 pt-8 opacity-40">
+					<p className={`font-body leading-[1.3] text-text text-center ${getQuestionFontSize(question.text)}`}>
 						{question.text}
 					</p>
 				</div>
@@ -254,6 +289,8 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 	}
 
 	// Interactive top card
+	const questionFontSize = getQuestionFontSize(question.text);
+
 	return (
 		<motion.div
 			ref={cardRef}
@@ -289,7 +326,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 
 			{/* Skip indicator (drag-up feedback) */}
 			<motion.div
-				className="absolute top-4 left-0 right-0 flex justify-center pointer-events-none"
+				className="absolute top-4 left-0 right-0 flex justify-center pointer-events-none z-10"
 				style={{ opacity: skipIndicatorOpacity }}
 			>
 				<span className="text-text-muted text-[13px] font-body font-medium uppercase tracking-wider">
@@ -297,32 +334,53 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 				</span>
 			</motion.div>
 
-			{/* Question text */}
-			<div className="flex items-center justify-center h-full px-8 py-16">
-				<p className="font-body text-[28px] leading-[1.3] text-text text-center">
-					{question.text}
-				</p>
+			{/* Card content: question top half, options bottom half */}
+			<div className="flex flex-col h-full">
+				{/* Question: upper ~50% */}
+				<div className="flex-1 flex items-center justify-center px-7 pt-10 pb-2">
+					<p className={`font-body leading-[1.3] text-text text-center ${questionFontSize}`}>
+						{question.text}
+					</p>
+				</div>
+
+				{/* Options: lower ~50%, stacked vertically */}
+				<div className="flex-1 flex flex-col justify-center px-6 pb-6 gap-3">
+					{/* Left option (upper position, left-justified with ← arrow) */}
+					<motion.div
+						className="flex items-start gap-2.5"
+						style={{ opacity: leftTextOpacity }}
+					>
+						<span
+							className="text-[18px] mt-0.5 shrink-0 font-bold"
+							style={{ color: leftColour }}
+						>
+							←
+						</span>
+						<p className="font-body text-[20px] leading-[1.3] text-text">
+							{leftOption.text}
+						</p>
+					</motion.div>
+
+					{/* Subtle divider between options */}
+					<div className="h-px bg-divider/40 mx-2" />
+
+					{/* Right option (lower position, right-justified with → arrow) */}
+					<motion.div
+						className="flex items-start gap-2.5 justify-end"
+						style={{ opacity: rightTextOpacity }}
+					>
+						<p className="font-body text-[20px] leading-[1.3] text-text text-right">
+							{rightOption.text}
+						</p>
+						<span
+							className="text-[18px] mt-0.5 shrink-0 font-bold"
+							style={{ color: rightColour }}
+						>
+							→
+						</span>
+					</motion.div>
+				</div>
 			</div>
-
-			{/* Option A label (left side) */}
-			<motion.div
-				className="absolute bottom-6 left-5 max-w-[40%] pointer-events-none"
-				style={{ opacity: leftTextOpacity }}
-			>
-				<p className="font-body text-[18px] leading-[1.3] text-text text-left">
-					{getOptionAText(question)}
-				</p>
-			</motion.div>
-
-			{/* Option B label (right side) */}
-			<motion.div
-				className="absolute bottom-6 right-5 max-w-[40%] pointer-events-none"
-				style={{ opacity: rightTextOpacity }}
-			>
-				<p className="font-body text-[18px] leading-[1.3] text-text text-right">
-					{getOptionBText(question)}
-				</p>
-			</motion.div>
 		</motion.div>
 	);
 }
