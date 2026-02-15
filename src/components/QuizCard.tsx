@@ -69,9 +69,9 @@ function getOptionColour(question: AnyQuestion, engineSide: 'left' | 'right'): s
  * Short questions get a large, impactful size; longer ones scale down to fit.
  */
 function getQuestionFontSize(text: string): string {
-	if (text.length <= 35) return 'text-[34px]';
-	if (text.length <= 70) return 'text-[28px]';
-	return 'text-[22px]';
+	if (text.length <= 35) return 'text-[40px]';
+	if (text.length <= 70) return 'text-[32px]';
+	return 'text-[26px]';
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -356,7 +356,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 						>
 							←
 						</span>
-						<p className="font-body text-[22px] leading-[1.3] text-text">
+						<p className="font-display text-[24px] leading-[1.3] text-text">
 							{leftOption.text}
 						</p>
 					</motion.div>
@@ -372,7 +372,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 						>
 							→
 						</span>
-						<p className="font-body text-[22px] leading-[1.3] text-text text-right">
+						<p className="font-display text-[24px] leading-[1.3] text-text text-right">
 							{rightOption.text}
 						</p>
 					</motion.div>

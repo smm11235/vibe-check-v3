@@ -114,12 +114,25 @@ export function resolveComboType(
 export function buildResult(state: QuizState): QuizResult {
 	const mirrorResolved = state.phase3Answered > 0;
 	const comboType = resolveComboType(state.scores, state.mirrorScore, mirrorResolved);
-	const percentages = normaliseToPercentages(state.scores);
-	const karma = calculateKarma(state.scores);
+
+	// If mirror phase flipped primary/secondary, swap the raw scores so
+	// percentages are consistent with the displayed archetype order.
+	const adjustedScores = { ...state.scores };
+	if (mirrorResolved && state.mirrorScore.flipped > state.mirrorScore.asIs) {
+		const primaryScore = adjustedScores[comboType.primary];
+		const secondaryScore = adjustedScores[comboType.secondary];
+		if (secondaryScore > primaryScore) {
+			adjustedScores[comboType.primary] = secondaryScore;
+			adjustedScores[comboType.secondary] = primaryScore;
+		}
+	}
+
+	const percentages = normaliseToPercentages(adjustedScores);
+	const karma = calculateKarma(adjustedScores);
 
 	return {
 		comboType,
-		scores: { ...state.scores },
+		scores: adjustedScores,
 		percentages,
 		karma,
 		totalKarma: 100,

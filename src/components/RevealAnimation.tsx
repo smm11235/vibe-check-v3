@@ -127,7 +127,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 			transition={{ duration: 0.5 }}
 		>
 			{/* Hero: reveal animation (viewport height) */}
-			<div className="min-h-[85vh] flex flex-col items-center justify-center relative overflow-hidden">
+			<div className="min-h-[65vh] flex flex-col items-center justify-center relative overflow-hidden">
 				{/* Archetype orbs converging from corners */}
 				<AnimatePresence>
 					{showOrbs && ARCHETYPE_IDS.map((archetype, i) => (

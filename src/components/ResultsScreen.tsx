@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import type { QuizResult, CompatibilityTier } from '@/data/types';
-import { ARCHETYPES, COMBO_TYPES, MIRROR_PAIRS } from '@/data/archetypes';
+import { ARCHETYPES, COMBO_TYPES } from '@/data/archetypes';
 import { COMPATIBILITY, COMPATIBILITY_TIERS } from '@/data/compatibility';
 
 // ─── Props ───
@@ -36,12 +36,6 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 	const tiers = COMPATIBILITY_TIERS[comboType.id];
 	const compatTexts = COMPATIBILITY[comboType.id];
 
-	// Mirror type info
-	const mirrorType = COMBO_TYPES[comboType.mirrorId];
-	const mirrorPair = MIRROR_PAIRS.find(
-		(mp) => mp.typeA === comboType.id || mp.typeB === comboType.id,
-	);
-
 	return (
 		<motion.div
 			className="flex-1 overflow-y-auto"
@@ -62,29 +56,6 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 						{ARCHETYPES[comboType.primary].name}/{ARCHETYPES[comboType.secondary].name} - Compatibility
 					</p>
 				</div>
-
-				{/* Mirror type */}
-				{mirrorType && mirrorPair && (
-					<div className="bg-surface rounded-xl p-5">
-						<h3 className="font-display text-[22px] text-text mb-3">
-							Your mirror type
-						</h3>
-						<div className="flex items-center gap-3 mb-2">
-							<span className="text-[24px]">{mirrorType.emoji}</span>
-							<div>
-								<span className="font-body text-[17px] text-text">
-									{mirrorType.name}
-								</span>
-								<span className="font-body text-[13px] text-text-muted ml-2">
-									{ARCHETYPES[mirrorType.primary].name}/{ARCHETYPES[mirrorType.secondary].name}
-								</span>
-							</div>
-						</div>
-						<p className="font-body text-[15px] text-text-secondary leading-[1.5]">
-							{mirrorPair.difference}
-						</p>
-					</div>
-				)}
 
 				{/* What you vibe with */}
 				{comboType.clickWith.length > 0 && (

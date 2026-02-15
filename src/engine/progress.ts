@@ -1,52 +1,72 @@
 import type { Scores } from '@/data/types';
-import { getLeaderboard } from './scoring';
 
 // ─── Progress Calculation ───
+//
+// Uses a smooth, non-linear curve with no phase-boundary stalls.
+// Phase 1 uses a linear + logarithmic blend for slightly front-loaded progress.
+// Phases 2 and 3 linearly ramp from wherever the previous phase ended
+// toward their respective targets. The main function enforces:
+// - Monotonic: progress never decreases
+// - Min step: at least 1% per question
+// - Max step: at most 10% per question
 
 /**
- * Calculate Phase 1 progress (0 to 0.75).
- * Two components:
- * - Base: questions answered / 20 (capped at 0.375)
- * - Confidence: how separated the archetypes are (capped at 0.375)
+ * Phase 1 progress (0 → up to 0.75).
  *
- * The confidence component means a decisive user reaches 75% faster
- * than an ambiguous one, even with fewer questions.
+ * Linear base (3.5% per question) plus a logarithmic boost that
+ * front-loads early progress. Typical values:
+ * - 12 questions → ~48%
+ * - 15 questions → ~59%
+ * - 20 questions → ~75%
  */
-export function calculatePhase1Progress(questionsAnswered: number, scores: Scores): number {
-	const base = Math.min(questionsAnswered / 20, 0.375);
-
-	const board = getLeaderboard(scores);
-	const primaryGap = board[0].score - board[1].score;
-	const secondaryGap = board[1].score - board[2].score;
-	const confidence = Math.min((primaryGap / 3.0 + secondaryGap / 2.0) / 2, 0.375);
-
-	return Math.min(base + confidence, 0.75);
+export function calculatePhase1Progress(questionsAnswered: number): number {
+	const linear = questionsAnswered * 0.035;
+	const logBoost = 0.02 * Math.log(1 + questionsAnswered * 2);
+	return Math.min(linear + logBoost, 0.75);
 }
 
 /**
- * Calculate Phase 2 progress (0.75 to 0.90).
- * Linear ramp over up to 5 questions.
+ * Phase 2 progress: linear from Phase 1 endpoint toward 92%.
+ *
+ * `phase1Questions` is the total Phase 1 question count (frozen at transition).
+ * This ensures a smooth handoff with no stall at the phase boundary.
  */
-export function calculatePhase2Progress(phase2Answered: number): number {
-	return 0.75 + Math.min(phase2Answered / 5, 1.0) * 0.15;
+export function calculatePhase2Progress(
+	phase1Questions: number,
+	phase2Answered: number,
+): number {
+	const base = calculatePhase1Progress(phase1Questions);
+	const target = 0.92;
+	return base + (target - base) * Math.min(phase2Answered / 5, 1.0);
 }
 
 /**
- * Calculate Phase 3 progress (0.90 to 0.99).
- * Linear ramp over up to 5 questions.
+ * Phase 3 progress: linear from Phase 2 endpoint toward 98%.
  */
-export function calculatePhase3Progress(phase3Answered: number): number {
-	return 0.90 + Math.min(phase3Answered / 5, 1.0) * 0.09;
+export function calculatePhase3Progress(
+	phase1Questions: number,
+	phase2Answered: number,
+	phase3Answered: number,
+): number {
+	const base = calculatePhase2Progress(phase1Questions, phase2Answered);
+	const target = 0.98;
+	return base + (target - base) * Math.min(phase3Answered / 5, 1.0);
 }
 
 /**
  * Main progress function. Dispatches to the correct phase calculator
- * and ensures progress never decreases.
+ * and enforces smoothing constraints:
+ * - Never decreases (monotonic)
+ * - At least 1% increment per call
+ * - At most 10% increment per call
+ *
+ * `scores` is accepted for API compatibility but not used;
+ * progress is now purely question-count driven for smoother results.
  */
 export function calculateProgress(
 	phase: 'phase1' | 'phase2' | 'phase3',
 	questionsAnswered: number,
-	scores: Scores,
+	_scores: Scores,
 	phase2Answered: number,
 	phase3Answered: number,
 	previousProgress: number,
@@ -55,15 +75,21 @@ export function calculateProgress(
 
 	switch (phase) {
 		case 'phase1':
-			raw = calculatePhase1Progress(questionsAnswered, scores);
+			raw = calculatePhase1Progress(questionsAnswered);
 			break;
 		case 'phase2':
-			raw = calculatePhase2Progress(phase2Answered);
+			raw = calculatePhase2Progress(questionsAnswered, phase2Answered);
 			break;
 		case 'phase3':
-			raw = calculatePhase3Progress(phase3Answered);
+			raw = calculatePhase3Progress(questionsAnswered, phase2Answered, phase3Answered);
 			break;
 	}
+
+	// Enforce minimum 1% increment
+	raw = Math.max(raw, previousProgress + 0.01);
+
+	// Enforce maximum 10% increment
+	raw = Math.min(raw, previousProgress + 0.10);
 
 	// Never decrease
 	return Math.max(raw, previousProgress);
