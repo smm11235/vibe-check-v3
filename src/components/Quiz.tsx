@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { QuizResult } from '@/data/types';
-import { useQuizEngine } from '@/hooks/useQuizEngine';
+import { useQuizEngine, isBaseQuestion, isComboQuestion } from '@/hooks/useQuizEngine';
 import { QuizCard } from '@/components/QuizCard';
 import { ProgressBar } from '@/components/ProgressBar';
 import { SwipeHints } from '@/components/SwipeHints';
-import { EmojiReaction } from '@/components/EmojiReaction';
+import { EmojiReaction, type ReactionConfig } from '@/components/EmojiReaction';
 
 // ─── Props ───
 
@@ -18,14 +18,18 @@ interface QuizProps {
 /**
  * Quiz orchestrator.
  * Wires the quiz engine with the swipeable card UI, progress bar,
- * swipe hints, and emoji reactions. Handles all three quiz phases
+ * swipe hints, and archetype emoji reactions. Handles all three quiz phases
  * as a seamless card flow.
+ *
+ * The card exit is handled by QuizCard itself (physics-based fly-off),
+ * which fires onExitStart (for emojis) then onAnswer (to advance the engine)
+ * after the animation completes.
  */
 export function Quiz({ onComplete }: QuizProps) {
 	const engine = useQuizEngine();
-	const [reactionEmoji, setReactionEmoji] = useState<string | null>(null);
+	const [reactionConfig, setReactionConfig] = useState<ReactionConfig | null>(null);
+	const [reactionTrigger, setReactionTrigger] = useState(0);
 	const [isIdle, setIsIdle] = useState(false);
-	const [exitDirection, setExitDirection] = useState<number>(0);
 	const idleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const hasCompletedRef = useRef(false);
 
@@ -60,26 +64,37 @@ export function Quiz({ onComplete }: QuizProps) {
 		};
 	}, [resetIdleTimer]);
 
-	function handleAnswer(side: 'left' | 'right') {
+	/**
+	 * Fires immediately when the card starts its exit animation.
+	 * Triggers archetype emoji reactions before the engine state changes.
+	 */
+	function handleExitStart(side: 'left' | 'right' | 'up') {
 		const question = engine.currentQuestion;
-		if (!question) return;
+		if (!question || side === 'up') return;
 
-		// Set exit direction for card animation
-		setExitDirection(side === 'left' ? -1 : 1);
+		// Base and combo questions have archetype info on their options
+		if (isBaseQuestion(question) || isComboQuestion(question)) {
+			const selected = side === 'left' ? question.optionA : question.optionB;
+			const other = side === 'left' ? question.optionB : question.optionA;
 
-		// Trigger emoji reaction from the selected option
-		const option = side === 'left' ? question.optionA : question.optionB;
-		setReactionEmoji(option.emoji);
+			setReactionConfig({
+				boostedArchetype: selected.archetype,
+				partialArchetype: other.archetype,
+				scores: engine.scores,
+			});
+			setReactionTrigger((t) => t + 1);
+		}
+		// Mirror questions don't increment archetypes — no emoji reaction
+	}
 
+	/** Fires after the card exit animation completes — advances the engine */
+	function handleAnswer(side: 'left' | 'right') {
 		engine.answer(side);
 		resetIdleTimer();
 	}
 
 	function handleSkip() {
 		if (!engine.currentQuestion) return;
-
-		// Swipe up exit
-		setExitDirection(0);
 		engine.skip();
 		resetIdleTimer();
 	}
@@ -96,36 +111,37 @@ export function Quiz({ onComplete }: QuizProps) {
 
 			{/* Card stack area */}
 			<div className="relative flex-1 flex items-center justify-center">
-				<AnimatePresence mode="popLayout" custom={exitDirection}>
-					{/* Next card (behind, non-interactive) */}
-					{engine.nextQuestion && (
-						<QuizCard
-							key={`next-${engine.nextQuestion.id}`}
-							question={engine.nextQuestion}
-							onAnswer={() => {}}
-							onSkip={() => {}}
-							isTop={false}
-							stackIndex={1}
-						/>
-					)}
+				{/* Behind card (outside AnimatePresence for stability) */}
+				{engine.nextQuestion && (
+					<QuizCard
+						key="behind-card"
+						question={engine.nextQuestion}
+						onAnswer={() => {}}
+						onSkip={() => {}}
+						isTop={false}
+						stackIndex={1}
+					/>
+				)}
 
-					{/* Current card (top, interactive) */}
+				{/* Top card (exit animation handled internally via motion values) */}
+				<AnimatePresence mode="popLayout">
 					{engine.currentQuestion && (
 						<QuizCard
 							key={engine.currentQuestion.id}
 							question={engine.currentQuestion}
 							onAnswer={handleAnswer}
 							onSkip={handleSkip}
+							onExitStart={handleExitStart}
 							isTop={true}
 							stackIndex={0}
 						/>
 					)}
 				</AnimatePresence>
 
-				{/* Emoji float-up reaction */}
+				{/* Archetype emoji reactions */}
 				<EmojiReaction
-					emoji={reactionEmoji}
-					onComplete={() => setReactionEmoji(null)}
+					key={reactionTrigger}
+					config={reactionConfig}
 				/>
 			</div>
 

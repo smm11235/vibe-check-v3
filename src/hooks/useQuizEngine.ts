@@ -541,6 +541,7 @@ export interface QuizEngine {
 	isComplete: boolean;
 	result: QuizResult | null;
 	questionsAnswered: number;
+	scores: Scores;
 	answer: (side: 'left' | 'right') => void;
 	skip: () => void;
 }
@@ -564,6 +565,7 @@ export function useQuizEngine(): QuizEngine {
 		isComplete: state.internalPhase === 'complete',
 		result: state.result,
 		questionsAnswered: state.questionsAnswered,
+		scores: state.scores,
 		answer,
 		skip,
 	};

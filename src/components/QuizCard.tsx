@@ -1,5 +1,5 @@
-import { useRef } from 'react';
-import { motion, useMotionValue, useTransform, type PanInfo } from 'framer-motion';
+import { useRef, useState, useEffect } from 'react';
+import { motion, useMotionValue, useTransform, animate, type PanInfo } from 'framer-motion';
 import type { AnyQuestion } from '@/data/types';
 import { isBaseQuestion, isComboQuestion } from '@/hooks/useQuizEngine';
 
@@ -9,6 +9,15 @@ const SWIPE_THRESHOLD_X = 80;
 const SWIPE_THRESHOLD_Y = 60;
 const TAP_THRESHOLD = 5;
 const MAX_ROTATION = 8;
+
+/** How far the card flies off-screen (px) */
+const EXIT_DISTANCE = 500;
+/** Minimum exit animation duration (s) */
+const MIN_EXIT_DURATION = 0.15;
+/** Maximum exit animation duration (s) */
+const MAX_EXIT_DURATION = 0.4;
+/** Fallback speed for taps where velocity is 0 (px/s) */
+const BASE_EXIT_SPEED = 800;
 
 /** Map archetype IDs to their CSS colour variables */
 const ARCHETYPE_COLOURS: Record<string, string> = {
@@ -24,6 +33,8 @@ interface QuizCardProps {
 	question: AnyQuestion;
 	onAnswer: (side: 'left' | 'right') => void;
 	onSkip: () => void;
+	/** Fires immediately when the exit animation starts (before onAnswer/onSkip) */
+	onExitStart?: (side: 'left' | 'right' | 'up') => void;
 	isTop: boolean;
 	stackIndex: number;
 }
@@ -56,11 +67,38 @@ function getRightColour(question: AnyQuestion): string {
 	return 'var(--color-accent)';
 }
 
+function clamp(value: number, min: number, max: number): number {
+	return Math.min(Math.max(value, min), max);
+}
+
+/** Trigger haptic feedback if available */
+function haptic(pattern: number | number[]) {
+	if (navigator.vibrate) {
+		navigator.vibrate(pattern);
+	}
+}
+
 // ─── Component ───
 
-export function QuizCard({ question, onAnswer, onSkip, isTop, stackIndex }: QuizCardProps) {
+/**
+ * Swipeable quiz card with physics-based exit animations.
+ *
+ * When swiped past threshold (or tapped), the card flies off-screen using
+ * velocity-based physics: faster swipes = faster exit, with natural rotation
+ * from the swipe momentum. Cards spring back to centre if released early.
+ */
+export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stackIndex }: QuizCardProps) {
 	const cardRef = useRef<HTMLDivElement>(null);
 	const thresholdFiredRef = useRef(false);
+	const [isExiting, setIsExiting] = useState(false);
+	const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	// Clean up exit timer on unmount
+	useEffect(() => {
+		return () => {
+			if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+		};
+	}, []);
 
 	// Motion values for drag tracking
 	const x = useMotionValue(0);
@@ -77,15 +115,64 @@ export function QuizCard({ question, onAnswer, onSkip, isTop, stackIndex }: Quiz
 	const leftColour = getLeftColour(question);
 	const rightColour = getRightColour(question);
 
-	/** Trigger haptic feedback if available */
-	function haptic(duration: number) {
-		if (navigator.vibrate) {
-			navigator.vibrate(duration);
+	/**
+	 * Animate the card off-screen with physics-based timing, then fire the callback.
+	 * Uses velocity from the drag gesture to determine exit speed and rotation.
+	 *
+	 * Physics: duration = distance / max(|velocity|, baseSpeed)
+	 * Clamped to [0.15s, 0.4s] for consistent feel.
+	 */
+	function exitCard(
+		direction: -1 | 0 | 1,
+		velocityX: number,
+		velocityY: number,
+		callback: () => void,
+	) {
+		setIsExiting(true);
+		haptic([15, 30, 10]);
+
+		const side = direction === 0 ? 'up' : direction > 0 ? 'right' : 'left';
+		onExitStart?.(side);
+
+		if (direction === 0) {
+			// Skip: fly upward
+			const targetY = -600;
+			const speed = Math.max(Math.abs(velocityY), BASE_EXIT_SPEED);
+			const duration = clamp(Math.abs(targetY - y.get()) / speed, MIN_EXIT_DURATION, MAX_EXIT_DURATION);
+
+			animate(y, targetY, { duration, ease: 'easeIn' });
+			animate(x, x.get() * 0.5, { duration });
+
+			exitTimerRef.current = setTimeout(callback, duration * 1000);
+		} else {
+			// Left or right exit
+			const targetX = direction * EXIT_DISTANCE;
+			const currentX = x.get();
+			const distance = Math.abs(targetX - currentX);
+			const effectiveSpeed = Math.max(Math.abs(velocityX), BASE_EXIT_SPEED);
+			const duration = clamp(distance / effectiveSpeed, MIN_EXIT_DURATION, MAX_EXIT_DURATION);
+
+			// Vertical drift based on velocity
+			const targetY = y.get() + velocityY * duration * 0.3;
+
+			animate(x, targetX, { duration, ease: 'easeOut' });
+			animate(y, targetY, { duration, ease: 'easeOut' });
+
+			exitTimerRef.current = setTimeout(callback, duration * 1000);
 		}
+	}
+
+	/** Spring the card back to centre when drag doesn't meet threshold */
+	function snapBack() {
+		haptic(3);
+		animate(x, 0, { type: 'spring', stiffness: 500, damping: 30 });
+		animate(y, 0, { type: 'spring', stiffness: 500, damping: 30 });
 	}
 
 	/** Handle drag position changes for threshold haptic */
 	function handleDrag(_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
+		if (isExiting) return;
+
 		const pastHorizontal = Math.abs(info.offset.x) > SWIPE_THRESHOLD_X;
 		const pastVertical = info.offset.y < -SWIPE_THRESHOLD_Y;
 
@@ -97,29 +184,28 @@ export function QuizCard({ question, onAnswer, onSkip, isTop, stackIndex }: Quiz
 		}
 	}
 
-	/** Handle drag end — determine if it's a swipe, skip, or tap */
+	/** Handle drag end — determine if it's a swipe, skip, tap, or snap-back */
 	function handleDragEnd(_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
-		const { offset, point } = info;
+		if (isExiting) return;
 		thresholdFiredRef.current = false;
+
+		const { offset, velocity, point } = info;
 
 		// Swipe right → option B
 		if (offset.x > SWIPE_THRESHOLD_X) {
-			haptic(20);
-			onAnswer('right');
+			exitCard(1, velocity.x, velocity.y, () => onAnswer('right'));
 			return;
 		}
 
 		// Swipe left → option A
 		if (offset.x < -SWIPE_THRESHOLD_X) {
-			haptic(20);
-			onAnswer('left');
+			exitCard(-1, velocity.x, velocity.y, () => onAnswer('left'));
 			return;
 		}
 
 		// Swipe up → skip
 		if (offset.y < -SWIPE_THRESHOLD_Y) {
-			haptic(20);
-			onSkip();
+			exitCard(0, velocity.x, velocity.y, () => onSkip());
 			return;
 		}
 
@@ -130,15 +216,15 @@ export function QuizCard({ question, onAnswer, onSkip, isTop, stackIndex }: Quiz
 			const cardCenterX = cardRect.left + cardRect.width / 2;
 
 			if (point.x < cardCenterX) {
-				haptic(20);
-				onAnswer('left');
+				exitCard(-1, 0, 0, () => onAnswer('left'));
 			} else {
-				haptic(20);
-				onAnswer('right');
+				exitCard(1, 0, 0, () => onAnswer('right'));
 			}
+			return;
 		}
 
-		// Otherwise: spring back (handled by dragSnapToOrigin)
+		// Not past any threshold — spring back to centre
+		snapBack();
 	}
 
 	// Behind-card styling (non-interactive stack cards)
@@ -173,17 +259,15 @@ export function QuizCard({ question, onAnswer, onSkip, isTop, stackIndex }: Quiz
 			ref={cardRef}
 			className="absolute w-[90%] max-w-[370px] h-[60vh] bg-surface rounded-xl shadow-card overflow-hidden select-none"
 			style={{ x, y, rotate, zIndex: 10, touchAction: 'none' }}
-			drag
-			dragSnapToOrigin
-			dragElastic={0.8}
-			dragTransition={{ bounceStiffness: 300, bounceDamping: 30 }}
+			drag={!isExiting}
+			dragMomentum={false}
 			onDrag={handleDrag}
 			onDragEnd={handleDragEnd}
-			initial={{ y: 50, opacity: 0, scale: 0.95 }}
-			animate={{ y: 0, opacity: 1, scale: 1 }}
-			exit={{ opacity: 0 }}
-			transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-			whileTap={{ cursor: 'grabbing' }}
+			initial={{ opacity: 0, scale: 0.95 }}
+			animate={{ opacity: 1, scale: 1 }}
+			exit={{ opacity: 0, transition: { duration: 0 } }}
+			transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+			whileDrag={{ scale: 1.02 }}
 		>
 			{/* Left glow (drag-left feedback) */}
 			<motion.div
