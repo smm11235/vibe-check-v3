@@ -107,7 +107,7 @@ export function ProfilePrompts({ result, onContinue }: ProfilePromptsProps) {
 										)}
 									</div>
 									{hasResponse && !isExpanded && (
-										<p className="font-body text-[13px] text-text-muted mt-2 line-clamp-2">
+										<p className="font-body text-[13px] text-text-secondary mt-2 line-clamp-2">
 											{response}
 										</p>
 									)}
@@ -129,7 +129,7 @@ export function ProfilePrompts({ result, onContinue }: ProfilePromptsProps) {
 												placeholder="Type your answer..."
 												maxLength={MAX_CHARS}
 												rows={3}
-												className="w-full bg-surface-2 text-text font-body text-[14px] leading-[1.5]
+												className="w-full bg-surface-2 text-text font-body text-[15px] leading-[1.5]
 													rounded-lg p-3 resize-none outline-none
 													placeholder:text-text-muted
 													focus:ring-1 focus:ring-accent/30"

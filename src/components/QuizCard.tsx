@@ -70,8 +70,8 @@ export function QuizCard({ question, onAnswer, onSkip, isTop, stackIndex }: Quiz
 	const rotate = useTransform(x, [-200, 0, 200], [-MAX_ROTATION, 0, MAX_ROTATION]);
 	const leftGlowOpacity = useTransform(x, [-150, -SWIPE_THRESHOLD_X, 0], [0.6, 0.3, 0]);
 	const rightGlowOpacity = useTransform(x, [0, SWIPE_THRESHOLD_X, 150], [0, 0.3, 0.6]);
-	const leftTextOpacity = useTransform(x, [-150, -30, 0], [1, 0.6, 0.35]);
-	const rightTextOpacity = useTransform(x, [0, 30, 150], [0.35, 0.6, 1]);
+	const leftTextOpacity = useTransform(x, [-150, -30, 0], [1, 0.7, 0.55]);
+	const rightTextOpacity = useTransform(x, [0, 30, 150], [0.55, 0.7, 1]);
 	const skipIndicatorOpacity = useTransform(y, [0, -30, -SWIPE_THRESHOLD_Y], [0, 0.3, 0.8]);
 
 	const leftColour = getLeftColour(question);
@@ -215,7 +215,7 @@ export function QuizCard({ question, onAnswer, onSkip, isTop, stackIndex }: Quiz
 
 			{/* Question text */}
 			<div className="flex items-center justify-center h-full px-8 py-16">
-				<p className="font-body text-[22px] leading-[1.3] text-text text-center">
+				<p className="font-body text-[24px] leading-[1.3] text-text text-center">
 					{question.text}
 				</p>
 			</div>
@@ -225,7 +225,7 @@ export function QuizCard({ question, onAnswer, onSkip, isTop, stackIndex }: Quiz
 				className="absolute bottom-6 left-5 max-w-[40%] pointer-events-none"
 				style={{ opacity: leftTextOpacity }}
 			>
-				<p className="font-body text-[13px] leading-[1.3] text-text-secondary text-left">
+				<p className="font-body text-[16px] leading-[1.3] text-text text-left">
 					{getOptionAText(question)}
 				</p>
 			</motion.div>
@@ -235,7 +235,7 @@ export function QuizCard({ question, onAnswer, onSkip, isTop, stackIndex }: Quiz
 				className="absolute bottom-6 right-5 max-w-[40%] pointer-events-none"
 				style={{ opacity: rightTextOpacity }}
 			>
-				<p className="font-body text-[13px] leading-[1.3] text-text-secondary text-right">
+				<p className="font-body text-[16px] leading-[1.3] text-text text-right">
 					{getOptionBText(question)}
 				</p>
 			</motion.div>

@@ -43,7 +43,7 @@ export function Tutorial({ onComplete }: TutorialProps) {
 				</div>
 			</div>
 
-			<p className="font-body text-[15px] text-text-muted mb-10 max-w-[260px]">
+			<p className="font-body text-[15px] text-text-secondary mb-10 max-w-[260px]">
 				No wrong answers. Go with your gut.
 			</p>
 

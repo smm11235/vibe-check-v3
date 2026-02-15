@@ -44,9 +44,15 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 
 				{/* Section A: Combo Type Card */}
 				<div
-					className="bg-surface rounded-xl p-5 shadow-card"
-					style={{ borderLeft: `3px solid ${primaryInfo.color}` }}
+					className="bg-surface rounded-xl p-5 pl-7 shadow-card relative overflow-hidden"
 				>
+					{/* Gradient left border: primary → secondary archetype colour */}
+					<div
+						className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
+						style={{
+							background: `linear-gradient(to bottom, ${primaryInfo.color}, ${secondaryInfo.color})`,
+						}}
+					/>
 					<div className="flex items-center gap-2 mb-2">
 						<span className="text-[28px]">{comboType.emoji}</span>
 						<h2 className="font-display text-[28px] leading-[1.1] text-text">
@@ -58,14 +64,14 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 						{comboType.tagline}
 					</p>
 
-					<p className="font-body text-[14px] leading-[1.6] text-text-secondary mb-4">
+					<p className="font-body text-[15px] leading-[1.6] text-text-secondary mb-4">
 						{comboType.description}
 					</p>
 
 					{/* Primary / Secondary badges */}
 					<div className="flex gap-2">
 						<span
-							className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-body font-medium"
+							className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-body font-medium"
 							style={{
 								backgroundColor: `${primaryInfo.color}20`,
 								color: primaryInfo.color,
@@ -74,7 +80,7 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 							{primaryInfo.emoji} Primary: {primaryInfo.name}
 						</span>
 						<span
-							className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-body font-medium"
+							className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-body font-medium"
 							style={{
 								backgroundColor: `${secondaryInfo.color}20`,
 								color: secondaryInfo.color,
@@ -104,7 +110,7 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 									transition={{ delay: 0.3 + i * 0.2, duration: 0.4 }}
 								>
 									<span className="text-[18px] w-7">{info.emoji}</span>
-									<span className="font-body text-[14px] text-text w-14">
+									<span className="font-body text-[15px] text-text w-14">
 										{info.name}
 									</span>
 									<div className="flex-1 h-[8px] bg-surface-2 rounded-full overflow-hidden">
@@ -120,7 +126,7 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 											}}
 										/>
 									</div>
-									<span className="font-body text-[14px] text-text-muted tabular-nums w-10 text-right">
+									<span className="font-body text-[15px] text-text-secondary tabular-nums w-10 text-right">
 										{pct}%
 									</span>
 								</motion.div>
@@ -147,11 +153,11 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 								>
 									<div className="flex items-center gap-2">
 										<span className="text-[14px]">{info.emoji}</span>
-										<span className="font-body text-[13px] text-text-secondary">
+										<span className="font-body text-[14px] text-text-secondary">
 											{info.name}
 										</span>
 										{isPrimary && (
-											<span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-2 text-text-muted font-body">
+											<span className="text-[11px] px-1.5 py-0.5 rounded bg-surface-2 text-text-secondary font-body">
 												primary
 											</span>
 										)}
@@ -182,7 +188,7 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 									{mirrorType.name}
 								</span>
 							</div>
-							<p className="font-body text-[13px] text-text-muted leading-[1.5]">
+							<p className="font-body text-[14px] text-text-secondary leading-[1.5]">
 								{mirrorPair.difference}
 							</p>
 						</div>
@@ -201,7 +207,7 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 										className="flex items-start gap-2 bg-surface rounded-lg p-3"
 									>
 										<span className="text-glow text-[14px] mt-0.5">✦</span>
-										<p className="font-body text-[13px] text-text-secondary leading-[1.5]">
+										<p className="font-body text-[14px] text-text-secondary leading-[1.5]">
 											{text}
 										</p>
 									</div>
@@ -223,7 +229,7 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 										className="flex items-start gap-2 bg-surface rounded-lg p-3"
 									>
 										<span className="text-pulse text-[14px] mt-0.5">✦</span>
-										<p className="font-body text-[13px] text-text-secondary leading-[1.5]">
+										<p className="font-body text-[14px] text-text-secondary leading-[1.5]">
 											{text}
 										</p>
 									</div>

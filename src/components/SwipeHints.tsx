@@ -19,7 +19,7 @@ export function SwipeHints({ questionsAnswered, isIdle }: SwipeHintsProps) {
 			animate={{ opacity: shouldShow ? 1 : 0 }}
 			transition={{ duration: 0.3 }}
 		>
-			<p className="font-body text-[11px] text-[#444444] tracking-wide">
+			<p className="font-body text-[12px] text-text-muted tracking-wide">
 				← Left&nbsp;&nbsp;&nbsp;↑ Skip&nbsp;&nbsp;&nbsp;Right →
 			</p>
 		</motion.div>

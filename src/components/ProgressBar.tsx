@@ -26,7 +26,7 @@ export function ProgressBar({ progress }: ProgressBarProps) {
 				</div>
 
 				{/* Percentage label */}
-				<span className="text-text-muted text-[11px] font-body tabular-nums min-w-[32px] text-right">
+				<span className="text-text-secondary text-[12px] font-body tabular-nums min-w-[32px] text-right">
 					{percentage}%
 				</span>
 			</div>

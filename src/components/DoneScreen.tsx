@@ -50,7 +50,7 @@ export function DoneScreen({ result, onRestart }: DoneScreenProps) {
 				<h3 className="font-display text-[24px] text-text mt-2 mb-1">
 					{comboType.name}
 				</h3>
-				<p className="font-body text-[14px] text-text-secondary">
+				<p className="font-body text-[15px] text-text-secondary">
 					{comboType.tagline}
 				</p>
 			</motion.div>
