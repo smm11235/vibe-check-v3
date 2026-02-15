@@ -5,8 +5,25 @@ import { isBaseQuestion, isComboQuestion } from '@/hooks/useQuizEngine';
 
 // ─── Constants ───
 
-const SWIPE_THRESHOLD_X = 80;
-const SWIPE_THRESHOLD_Y = 60;
+/** Distance threshold for selection (position-only, no velocity) */
+const SWIPE_THRESHOLD_X = 110;
+const SWIPE_THRESHOLD_Y = 90;
+
+/** Minimum physical offset to even consider a swipe (prevents pure-velocity triggers) */
+const MIN_SWIPE_OFFSET_X = 35;
+const MIN_SWIPE_OFFSET_Y = 30;
+
+/**
+ * Velocity contribution factor: px/s × this = effective distance bonus.
+ * A fast flick adds velocity * VELOCITY_FACTOR to the effective distance,
+ * so quick gestures can select from shorter physical distances.
+ */
+const VELOCITY_FACTOR = 0.15;
+
+/** Haptic fires at a shorter distance than selection as "getting close" feedback */
+const HAPTIC_THRESHOLD_X = 80;
+const HAPTIC_THRESHOLD_Y = 60;
+
 const TAP_THRESHOLD = 5;
 const MAX_ROTATION = 8;
 
@@ -115,15 +132,16 @@ function haptic(pattern: number | number[]) {
 /**
  * Swipeable quiz card with Reigns-style hidden answers.
  *
- * Layout: question in upper half, direction arrows in lower half.
+ * Layout: question in upper half, option emojis + ↓ in lower half.
  * Answers are hidden by default and revealed as the user drags:
- * - Drag left → left answer fades in (arrows fade out)
- * - Drag right → right answer fades in (arrows fade out)
- * - Drag down → skip text variant fades in (arrows fade out)
+ * - Drag left → left emoji stays, right emoji + ↓ fade, left answer text appears
+ * - Drag right → right emoji stays, left emoji + ↓ fade, right answer text appears
+ * - Drag down → all emojis + ↓ fade, skip text variant appears
  *
- * Answer sides are randomised per question (deterministic hash of question.id)
- * to prevent positional bias. The swap is transparent to the engine — onAnswer
- * always passes the correct engine side ('left' = optionA, 'right' = optionB).
+ * Only one direction's content is ever visible (exclusive based on dominant axis).
+ *
+ * Selection uses a hybrid threshold: position + velocity * factor.
+ * Fast flicks select from shorter distances; slow releases need more distance.
  */
 export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stackIndex }: QuizCardProps) {
 	const cardRef = useRef<HTMLDivElement>(null);
@@ -166,25 +184,74 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 
 	// Derived transforms
 	const rotate = useTransform(x, [-200, 0, 200], [-MAX_ROTATION, 0, MAX_ROTATION]);
-	const leftGlowOpacity = useTransform(x, [-150, -SWIPE_THRESHOLD_X, 0], [0.6, 0.3, 0]);
-	const rightGlowOpacity = useTransform(x, [0, SWIPE_THRESHOLD_X, 150], [0, 0.3, 0.6]);
+	const leftGlowOpacity = useTransform(x, [-150, -HAPTIC_THRESHOLD_X, 0], [0.6, 0.3, 0]);
+	const rightGlowOpacity = useTransform(x, [0, HAPTIC_THRESHOLD_X, 150], [0, 0.3, 0.6]);
 
-	// Arrows fade out as card moves in any direction
-	const arrowsOpacity = useTransform(
-		[x, y],
-		(latest: number[]) => {
-			const absX = Math.abs(latest[0]);
-			const posY = Math.max(latest[1], 0);
-			return 1 - Math.min(Math.max(absX, posY) / 40, 1);
-		},
-	);
+	// ─── Exclusive direction opacities ───
+	// Only one direction is "active" based on dominant displacement axis.
+	// This prevents overlapping text when dragging diagonally.
 
-	// Answer text fades in as card moves left/right
-	const leftAnswerOpacity = useTransform(x, [-100, -30, 0], [1, 0.4, 0]);
-	const rightAnswerOpacity = useTransform(x, [0, 30, 100], [0, 0.4, 1]);
+	/** Left emoji: visible at rest + when dragging left; fades when dragging right or down */
+	const leftEmojiOpacity = useTransform([x, y], (latest: number[]) => {
+		const lx = latest[0];
+		const ly = Math.max(latest[1], 0);
+		const absX = Math.abs(lx);
+		const maxDisp = Math.max(absX, ly);
 
-	// Skip text fades in as card moves down
-	const skipTextOpacity = useTransform(y, [0, 25, SWIPE_THRESHOLD_Y], [0, 0.4, 0.8]);
+		if (maxDisp < 10) return 1;
+		if (lx < 0 && absX >= ly) return 1; // dragging left: stay visible
+		return Math.max(0, 1 - (maxDisp - 10) / 30);
+	});
+
+	/** Right emoji: visible at rest + when dragging right; fades when dragging left or down */
+	const rightEmojiOpacity = useTransform([x, y], (latest: number[]) => {
+		const lx = latest[0];
+		const ly = Math.max(latest[1], 0);
+		const absX = Math.abs(lx);
+		const maxDisp = Math.max(absX, ly);
+
+		if (maxDisp < 10) return 1;
+		if (lx > 0 && absX >= ly) return 1; // dragging right: stay visible
+		return Math.max(0, 1 - (maxDisp - 10) / 30);
+	});
+
+	/** Down arrow: visible at rest, fades on any drag */
+	const downArrowOpacity = useTransform([x, y], (latest: number[]) => {
+		const absX = Math.abs(latest[0]);
+		const posY = Math.max(latest[1], 0);
+		const maxDisp = Math.max(absX, posY);
+
+		if (maxDisp < 10) return 1;
+		return Math.max(0, 1 - (maxDisp - 10) / 30);
+	});
+
+	/** Left answer text: only when dragging left AND horizontal is dominant */
+	const leftAnswerOpacity = useTransform([x, y], (latest: number[]) => {
+		const lx = latest[0];
+		const ly = Math.max(latest[1], 0);
+		const absX = Math.abs(lx);
+
+		if (lx >= 0 || ly > absX) return 0;
+		return Math.min(Math.max((absX - 25) / 45, 0), 1);
+	});
+
+	/** Right answer text: only when dragging right AND horizontal is dominant */
+	const rightAnswerOpacity = useTransform([x, y], (latest: number[]) => {
+		const lx = latest[0];
+		const ly = Math.max(latest[1], 0);
+
+		if (lx <= 0 || ly > lx) return 0;
+		return Math.min(Math.max((lx - 25) / 45, 0), 1);
+	});
+
+	/** Skip text: only when dragging down AND vertical is dominant */
+	const skipTextOpacity = useTransform([x, y], (latest: number[]) => {
+		const ly = Math.max(latest[1], 0);
+		const absX = Math.abs(latest[0]);
+
+		if (absX >= ly) return 0;
+		return Math.min(Math.max((ly - 20) / 40, 0), 1);
+	});
 
 	/**
 	 * Animate the card off-screen with physics-based timing, then fire the callback.
@@ -247,8 +314,8 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 	function handleDrag(_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
 		if (isExiting) return;
 
-		const pastHorizontal = Math.abs(info.offset.x) > SWIPE_THRESHOLD_X;
-		const pastVertical = info.offset.y > SWIPE_THRESHOLD_Y;
+		const pastHorizontal = Math.abs(info.offset.x) > HAPTIC_THRESHOLD_X;
+		const pastVertical = info.offset.y > HAPTIC_THRESHOLD_Y;
 
 		if ((pastHorizontal || pastVertical) && !thresholdFiredRef.current) {
 			thresholdFiredRef.current = true;
@@ -258,27 +325,38 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 		}
 	}
 
-	/** Handle drag end — determine if it's a swipe, skip, tap, or snap-back */
+	/**
+	 * Handle drag end — determine if it's a swipe, skip, tap, or snap-back.
+	 *
+	 * Uses a hybrid threshold: effectiveDistance = offset + velocity × factor.
+	 * A fast flick can trigger from a shorter physical distance,
+	 * but a slow release (just lifting your finger) requires going further.
+	 */
 	function handleDragEnd(_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
 		if (isExiting) return;
 		thresholdFiredRef.current = false;
 
 		const { offset, velocity, point } = info;
 
-		// Swipe right → chose the right-side option
-		if (offset.x > SWIPE_THRESHOLD_X) {
+		// Effective distance: position + velocity contribution (velocity only counts in swipe direction)
+		const effectiveRight = offset.x + Math.max(velocity.x, 0) * VELOCITY_FACTOR;
+		const effectiveLeft = Math.abs(offset.x) + Math.max(-velocity.x, 0) * VELOCITY_FACTOR;
+		const effectiveDown = offset.y + Math.max(velocity.y, 0) * VELOCITY_FACTOR;
+
+		// Swipe right (must have moved at least MIN_SWIPE_OFFSET physically)
+		if (offset.x > MIN_SWIPE_OFFSET_X && effectiveRight > SWIPE_THRESHOLD_X) {
 			exitCard(1, velocity.x, velocity.y, () => onAnswer(resolveAnswer('right')));
 			return;
 		}
 
-		// Swipe left → chose the left-side option
-		if (offset.x < -SWIPE_THRESHOLD_X) {
+		// Swipe left
+		if (offset.x < -MIN_SWIPE_OFFSET_X && effectiveLeft > SWIPE_THRESHOLD_X) {
 			exitCard(-1, velocity.x, velocity.y, () => onAnswer(resolveAnswer('left')));
 			return;
 		}
 
 		// Swipe down → skip
-		if (offset.y > SWIPE_THRESHOLD_Y) {
+		if (offset.y > MIN_SWIPE_OFFSET_Y && effectiveDown > SWIPE_THRESHOLD_Y) {
 			exitCard(0, velocity.x, velocity.y, () => onSkip());
 			return;
 		}
@@ -363,7 +441,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 				}}
 			/>
 
-			{/* Card content: question top half, arrows/answers bottom half */}
+			{/* Card content: question top half, emojis/answers bottom half */}
 			<div className="flex flex-col h-full">
 				{/* Question: upper ~50% */}
 				<div className="flex-1 flex items-center justify-center px-7 pt-10 pb-2">
@@ -372,61 +450,58 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 					</p>
 				</div>
 
-				{/* Lower half: arrows at rest, answers/skip on drag */}
-				<div className="flex-1 relative">
-					{/* Default arrows — visible when card is at rest */}
-					<motion.div
-						className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none"
-						style={{ opacity: arrowsOpacity }}
-					>
-						<div className="flex items-center justify-between w-full px-12">
-							<span
-								className="text-[44px] font-bold leading-none"
-								style={{ color: leftColour }}
-							>
-								←
-							</span>
-							<span
-								className="text-[44px] font-bold leading-none"
-								style={{ color: rightColour }}
-							>
-								→
-							</span>
-						</div>
-						<span className="text-[36px] text-text-muted font-bold leading-none">
-							↓
-						</span>
-					</motion.div>
+				{/* Lower half: emojis + arrow at rest, answer/skip text on drag */}
+				<div className="flex-1 flex flex-col relative">
+					{/* Emoji row: fixed at top of lower half */}
+					<div className="flex items-center justify-between px-12 pt-3 shrink-0 pointer-events-none">
+						<motion.span className="text-[36px]" style={{ opacity: leftEmojiOpacity }}>
+							{leftOption.emoji}
+						</motion.span>
+						<motion.span className="text-[36px]" style={{ opacity: rightEmojiOpacity }}>
+							{rightOption.emoji}
+						</motion.span>
+					</div>
 
-					{/* Left answer — revealed when dragging left */}
-					<motion.div
-						className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
-						style={{ opacity: leftAnswerOpacity }}
-					>
-						<p className={`font-display ${getAnswerFontSize(leftOption.text)} leading-[1.2] text-text text-center`}>
-							{leftOption.text}
-						</p>
-					</motion.div>
+					{/* Content area below emojis: arrow, answer texts, skip text (mutually exclusive) */}
+					<div className="flex-1 relative">
+						{/* Down arrow — visible at rest, fades on any drag */}
+						<motion.div
+							className="absolute inset-0 flex items-center justify-center pointer-events-none"
+							style={{ opacity: downArrowOpacity }}
+						>
+							<span className="text-[24px] text-text-muted font-bold leading-none">↓</span>
+						</motion.div>
 
-					{/* Right answer — revealed when dragging right */}
-					<motion.div
-						className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
-						style={{ opacity: rightAnswerOpacity }}
-					>
-						<p className={`font-display ${getAnswerFontSize(rightOption.text)} leading-[1.2] text-text text-center`}>
-							{rightOption.text}
-						</p>
-					</motion.div>
+						{/* Left answer — revealed when dragging left (horizontal dominant) */}
+						<motion.div
+							className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
+							style={{ opacity: leftAnswerOpacity }}
+						>
+							<p className={`font-display ${getAnswerFontSize(leftOption.text)} leading-[1.2] text-text text-center`}>
+								{leftOption.text}
+							</p>
+						</motion.div>
 
-					{/* Skip text — revealed when dragging down */}
-					<motion.div
-						className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
-						style={{ opacity: skipTextOpacity }}
-					>
-						<p className="font-body text-[22px] text-text-muted text-center italic">
-							{skipText}
-						</p>
-					</motion.div>
+						{/* Right answer — revealed when dragging right (horizontal dominant) */}
+						<motion.div
+							className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
+							style={{ opacity: rightAnswerOpacity }}
+						>
+							<p className={`font-display ${getAnswerFontSize(rightOption.text)} leading-[1.2] text-text text-center`}>
+								{rightOption.text}
+							</p>
+						</motion.div>
+
+						{/* Skip text — revealed when dragging down (vertical dominant) */}
+						<motion.div
+							className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
+							style={{ opacity: skipTextOpacity }}
+						>
+							<p className="font-body text-[22px] text-text-muted text-center italic">
+								{skipText}
+							</p>
+						</motion.div>
+					</div>
 				</div>
 			</div>
 		</motion.div>
