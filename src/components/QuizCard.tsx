@@ -7,11 +7,11 @@ import { isBaseQuestion, isComboQuestion } from '@/hooks/useQuizEngine';
 
 /** Distance threshold for selection (position-only, no velocity) */
 const SWIPE_THRESHOLD_X = 110;
-const SWIPE_THRESHOLD_Y = 150;
+const SWIPE_THRESHOLD_Y = 250;
 
 /** Minimum physical offset to even consider a swipe (prevents pure-velocity triggers) */
 const MIN_SWIPE_OFFSET_X = 35;
-const MIN_SWIPE_OFFSET_Y = 60;
+const MIN_SWIPE_OFFSET_Y = 100;
 
 /**
  * Velocity contribution factor: px/s × this = effective distance bonus.
@@ -479,7 +479,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 						className="absolute inset-0 flex items-center justify-center px-14 pointer-events-none"
 						style={{ opacity: skipTextOpacity }}
 					>
-						<p className={`font-display ${questionFontSize} leading-[1.1] text-[#D4D4D4] text-center`}>
+						<p className={`font-display ${questionFontSize} leading-[1.1] text-[#888888] text-center`}>
 							{skipText}
 						</p>
 					</motion.div>
