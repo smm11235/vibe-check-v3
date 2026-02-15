@@ -72,21 +72,23 @@ vibe-check-v3/
 │   │   ├── QuizCard.tsx               # The swipeable card (CORE INTERACTION)
 │   │   ├── ProgressBar.tsx            # Visual progress indicator
 │   │   ├── RevealAnimation.tsx        # Combo type reveal with spring animation
-│   │   ├── ResultsScreen.tsx          # Results UI, archetype detail, prompts
-│   │   ├── ProfilePrompts.tsx         # 5 prompt display
-│   │   └── ui/                        # Shared UI primitives (Button, Card, etc.)
+│   │   ├── ResultsScreen.tsx          # Results UI, archetype detail, compatibility
+│   │   ├── ProfilePrompts.tsx         # 5 prompt display with photo/text input
+│   │   ├── DoneScreen.tsx             # Final confirmation + retake option
+│   │   ├── SwipeHints.tsx             # Directional swipe hints below card
+│   │   └── EmojiReaction.tsx          # Floating archetype emoji reactions
 │   ├── hooks/
-│   │   ├── useQuizEngine.ts           # Main quiz state machine
-│   │   └── useSwipeGesture.ts         # Fallback if needed beyond Framer Motion
+│   │   ├── useAppState.ts             # Screen flow state machine
+│   │   └── useQuizEngine.ts           # Main quiz state machine
 │   ├── styles/
 │   │   └── globals.css                # Tailwind imports, custom fonts, CSS vars
 │   ├── main.tsx
-│   └── index.html
+├── index.html                          # Root HTML (with viewport-fit=cover)
 ├── public/
-│   └── fonts/                         # RightGrotesk, NeueBit-Bold
+│   └── fonts/                         # RightGrotesk, NeueBit-Bold (.otf files)
 ├── package.json
 ├── tsconfig.json
-├── tailwind.config.ts
+├── vitest.config.ts
 ├── vite.config.ts
 └── .github/
     └── workflows/
@@ -275,9 +277,9 @@ Build in this **exact order** (see `docs/implementation-spec.md` for details):
 - **Fallback chain**: `"RightGrotesk", "NeueBit-Bold", Inter, -apple-system, sans-serif`
 
 ### Font files location
-- `/public/fonts/` - woff2 files for both typefaces
+- `/public/fonts/` - OTF files for both typefaces
 - Import in `src/styles/globals.css` using `@font-face`
-- Reference in Tailwind config
+- Referenced via Tailwind CSS v4 `@theme` in globals.css (no separate tailwind.config.ts)
 
 ---
 
@@ -372,9 +374,8 @@ npm run preview      # Preview production build
 npm run test         # Run Vitest
 npm run test:watch  # Run tests in watch mode
 
-# Linting (if configured)
-npm run lint
-npm run format
+# Linting
+npm run lint         # ESLint
 ```
 
 ---

@@ -351,7 +351,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 						style={{ opacity: leftTextOpacity }}
 					>
 						<span
-							className="block text-[16px] font-bold mb-1"
+							className="block text-[28px] font-bold mb-1 leading-none"
 							style={{ color: leftColour }}
 						>
 							←
@@ -367,7 +367,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 						style={{ opacity: rightTextOpacity }}
 					>
 						<span
-							className="block text-[16px] font-bold mb-1"
+							className="block text-[28px] font-bold mb-1 leading-none"
 							style={{ color: rightColour }}
 						>
 							→

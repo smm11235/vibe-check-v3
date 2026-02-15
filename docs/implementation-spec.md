@@ -6,6 +6,13 @@ Phased build plan for the Vibe Check prototype. Each phase is designed to be com
 Tech stack: React 18 + TypeScript + Vite + Framer Motion + Tailwind CSS v4.
 Target: iPhone 16 Pro (393×852), GitHub Pages deployment.
 
+### Current Status (Feb 2026)
+- **Phase 1 (Foundation)**: Complete
+- **Phase 2 (Data & Engine)**: Complete — 72 unit tests passing
+- **Phase 3 (Quiz UI)**: Complete — swipeable cards, physics-based exits, emoji reactions, answer randomisation
+- **Phase 4 (Results)**: Complete — reveal animation, results screen, profile prompts, done screen
+- **Phase 5 (Polish)**: In progress — font/contrast pass done, card layout refinements done, further polish ongoing
+
 ---
 
 ## Phase 1: Foundation & Scaffold
@@ -38,12 +45,13 @@ Working React app with routing, theming, and GitHub Pages deployment.
 - Screen transitions exist (can be simple fades for now)
 
 ### Key Files Created
-- package.json, tsconfig.json, vite.config.ts, tailwind.config.ts
-- src/main.tsx, src/App.tsx
-- src/styles/globals.css
-- src/components/Layout.tsx, Landing.tsx, Quiz.tsx (placeholder), Results.tsx (placeholder)
+- package.json, tsconfig.json, vite.config.ts, vitest.config.ts
+- src/main.tsx, index.html (root level)
+- src/styles/globals.css (Tailwind v4 @theme config, @font-face declarations)
+- src/components/Layout.tsx, Landing.tsx, Quiz.tsx, App.tsx
 - src/hooks/useAppState.ts (screen flow state machine)
 - .github/workflows/deploy.yml
+- Note: Tailwind CSS v4 uses @theme in globals.css instead of tailwind.config.ts
 
 ---
 
@@ -117,7 +125,7 @@ All content in TypeScript data files. Scoring engine with unit tests. No UI chan
 - src/data/types.ts, archetypes.ts, questions.ts, compatibility.ts
 - src/engine/scoring.ts, selection.ts, termination.ts, progress.ts
 - src/engine/__tests__/*.test.ts
-- vitest.config.ts (if not already present)
+- vitest.config.ts
 
 ---
 
@@ -258,7 +266,7 @@ Reveal animation, results display, archetype detail, and profile prompt selectio
 
 ### Key Files Created/Modified
 - src/components/RevealAnimation.tsx, ResultsScreen.tsx, ProfilePrompts.tsx, DoneScreen.tsx
-- May need: src/components/ui/BarGauge.tsx, Confetti.tsx, TypeWriter.tsx
+- Confetti and typewriter effects built inline with Framer Motion (no separate utility components needed)
 
 ---
 
@@ -335,8 +343,8 @@ Production-quality feel. Every interaction has intention. Responsive across devi
 ### Key Files Modified
 - All component files (animation refinement)
 - src/styles/globals.css (responsive breakpoints, safe areas)
-- src/components/ShareCard.tsx (new)
-- src/hooks/useQuizEngine.ts (localStorage persistence)
+- src/hooks/useQuizEngine.ts (scores exposed for emoji reactions)
+- Note: ShareCard.tsx and localStorage persistence are stretch goals not yet implemented
 
 ---
 
