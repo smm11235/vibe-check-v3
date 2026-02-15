@@ -12,7 +12,7 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
 	return (
 		<div className="min-h-dvh w-full flex flex-col items-center bg-bg">
-			<div className="w-full max-w-[393px] min-h-dvh flex flex-col relative">
+			<div className="w-full max-w-[393px] min-h-dvh flex flex-col relative overflow-y-auto overflow-x-hidden">
 				{children}
 			</div>
 		</div>
