@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import type { QuizResult, ArchetypeId } from '@/data/types';
+import type { QuizResult, CompatibilityTier } from '@/data/types';
 import { ARCHETYPES, COMBO_TYPES, MIRROR_PAIRS } from '@/data/archetypes';
+import { COMPATIBILITY, COMPATIBILITY_TIERS } from '@/data/compatibility';
 
 // ─── Props ───
 
@@ -11,26 +12,35 @@ interface ResultsScreenProps {
 
 // ─── Constants ───
 
-const ALL_ARCHETYPES: ArchetypeId[] = ['pulse', 'glow', 'cozy', 'lore'];
+/** Tier display config: heading and decorative marker colour */
+const TIER_CONFIG: Record<CompatibilityTier, { heading: string; markerColour: string }> = {
+	bestBets: { heading: 'Best Bets', markerColour: 'text-glow' },
+	goodToKnow: { heading: 'Good to Know', markerColour: 'text-accent' },
+	mightWorkIf: { heading: 'Might Work If...', markerColour: 'text-pulse' },
+};
 
-// ─── Helpers ───
-
-/** Find the mirror pair info for the user's combo type */
-function getMirrorInfo(result: QuizResult) {
-	const mirrorType = COMBO_TYPES[result.comboType.mirrorId];
-	const mirrorPair = MIRROR_PAIRS.find(
-		(mp) => mp.typeA === result.comboType.id || mp.typeB === result.comboType.id,
-	);
-	return { mirrorType, mirrorPair };
-}
+const TIER_ORDER: CompatibilityTier[] = ['bestBets', 'goodToKnow', 'mightWorkIf'];
 
 // ─── Component ───
 
+/**
+ * Compatibility results page.
+ *
+ * Shows: type header, mirror type, what you vibe with / what drains you,
+ * then all 11 other types categorised into three tiers (Best Bets, Good to Know,
+ * Might Work If...). Each matchup shows the type name, archetype pair,
+ * and full compatibility description.
+ */
 export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
-	const { comboType, percentages, karma } = result;
-	const primaryInfo = ARCHETYPES[comboType.primary];
-	const secondaryInfo = ARCHETYPES[comboType.secondary];
-	const { mirrorType, mirrorPair } = getMirrorInfo(result);
+	const { comboType } = result;
+	const tiers = COMPATIBILITY_TIERS[comboType.id];
+	const compatTexts = COMPATIBILITY[comboType.id];
+
+	// Mirror type info
+	const mirrorType = COMBO_TYPES[comboType.mirrorId];
+	const mirrorPair = MIRROR_PAIRS.find(
+		(mp) => mp.typeA === comboType.id || mp.typeB === comboType.id,
+	);
 
 	return (
 		<motion.div
@@ -42,138 +52,16 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 		>
 			<div className="px-5 py-8 pb-24 space-y-6">
 
-				{/* Section A: Combo Type Card */}
-				<div className="bg-surface rounded-xl p-5 pl-7 shadow-card relative overflow-hidden">
-					{/* Gradient left border: primary → secondary archetype colour */}
-					<div
-						className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
-						style={{
-							background: `linear-gradient(to bottom, ${primaryInfo.color}, ${secondaryInfo.color})`,
-						}}
-					/>
-
-					<div className="flex items-center gap-3 mb-3">
-						<span className="text-[36px]">{comboType.emoji}</span>
-						<h2 className="font-display text-[32px] leading-[1.1] text-text">
-							{comboType.name}
-						</h2>
-					</div>
-
-					<p className="font-body text-[18px] text-accent mb-3">
-						{comboType.tagline}
+				{/* Type header */}
+				<div className="text-center mb-2">
+					<span className="text-[40px]">{comboType.emoji}</span>
+					<h2 className="font-display text-[36px] leading-[1.1] text-text mt-2">
+						{comboType.name}
+					</h2>
+					<p className="font-body text-[14px] text-text-muted mt-1">
+						{ARCHETYPES[comboType.primary].name}/{ARCHETYPES[comboType.secondary].name} - Compatibility
 					</p>
-
-					<p className="font-body text-[16px] leading-[1.6] text-text-secondary mb-4">
-						{comboType.description}
-					</p>
-
-					{/* Primary / Secondary badges */}
-					<div className="flex flex-wrap gap-2">
-						<span
-							className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[14px] font-body font-medium"
-							style={{
-								backgroundColor: `${primaryInfo.color}20`,
-								color: primaryInfo.color,
-							}}
-						>
-							{primaryInfo.emoji} Primary: {primaryInfo.name}
-						</span>
-						<span
-							className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[14px] font-body font-medium"
-							style={{
-								backgroundColor: `${secondaryInfo.color}20`,
-								color: secondaryInfo.color,
-							}}
-						>
-							{secondaryInfo.emoji} Secondary: {secondaryInfo.name}
-						</span>
-					</div>
 				</div>
-
-				{/* Section B: Vibe DNA Breakdown */}
-				<div className="bg-surface rounded-xl p-5">
-					<h3 className="font-display text-[24px] text-text mb-4">
-						Vibe DNA
-					</h3>
-
-					<div className="space-y-4">
-						{ALL_ARCHETYPES.map((archetype, i) => {
-							const info = ARCHETYPES[archetype];
-							const pct = percentages[archetype];
-							return (
-								<motion.div
-									key={archetype}
-									className="flex items-center gap-3"
-									initial={{ opacity: 0, x: -20 }}
-									animate={{ opacity: 1, x: 0 }}
-									transition={{ delay: 0.3 + i * 0.2, duration: 0.4 }}
-								>
-									<span className="text-[20px] w-7">{info.emoji}</span>
-									<span className="font-body text-[16px] text-text w-14">
-										{info.name}
-									</span>
-									<div className="flex-1 h-[10px] bg-surface-2 rounded-full overflow-hidden">
-										<motion.div
-											className="h-full rounded-full"
-											style={{ backgroundColor: info.color }}
-											initial={{ width: 0 }}
-											animate={{ width: `${pct}%` }}
-											transition={{
-												delay: 0.5 + i * 0.2,
-												duration: 0.6,
-												ease: 'easeOut',
-											}}
-										/>
-									</div>
-									<span className="font-body text-[16px] text-text-secondary tabular-nums w-12 text-right">
-										{pct}%
-									</span>
-								</motion.div>
-							);
-						})}
-					</div>
-				</div>
-
-				{/* Section C: Karma Earned */}
-				<div className="bg-surface rounded-xl p-5">
-					<h3 className="font-display text-[24px] text-accent mb-4">
-						YOU EARNED 100 PX
-					</h3>
-
-					<div className="space-y-3">
-						{ALL_ARCHETYPES.map((archetype) => {
-							const info = ARCHETYPES[archetype];
-							const karmaPts = karma[archetype];
-							const isPrimary = archetype === comboType.primary;
-							return (
-								<div
-									key={archetype}
-									className="flex items-center justify-between"
-								>
-									<div className="flex items-center gap-2">
-										<span className="text-[16px]">{info.emoji}</span>
-										<span className="font-body text-[16px] text-text-secondary">
-											{info.name}
-										</span>
-										{isPrimary && (
-											<span className="text-[12px] px-2 py-0.5 rounded bg-surface-2 text-text-secondary font-body">
-												primary
-											</span>
-										)}
-									</div>
-									<span
-										className="font-body text-[16px] font-medium tabular-nums"
-										style={{ color: info.color }}
-									>
-										+{karmaPts} px
-									</span>
-								</div>
-							);
-						})}
-					</div>
-				</div>
-
-				{/* Section D: Compatibility Preview */}
 
 				{/* Mirror type */}
 				{mirrorType && mirrorPair && (
@@ -183,30 +71,32 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 						</h3>
 						<div className="flex items-center gap-3 mb-2">
 							<span className="text-[24px]">{mirrorType.emoji}</span>
-							<span className="font-body text-[18px] text-text">
-								{mirrorType.name}
-							</span>
+							<div>
+								<span className="font-body text-[17px] text-text">
+									{mirrorType.name}
+								</span>
+								<span className="font-body text-[13px] text-text-muted ml-2">
+									{ARCHETYPES[mirrorType.primary].name}/{ARCHETYPES[mirrorType.secondary].name}
+								</span>
+							</div>
 						</div>
-						<p className="font-body text-[16px] text-text-secondary leading-[1.5]">
+						<p className="font-body text-[15px] text-text-secondary leading-[1.5]">
 							{mirrorPair.difference}
 						</p>
 					</div>
 				)}
 
-				{/* Click with */}
+				{/* What you vibe with */}
 				{comboType.clickWith.length > 0 && (
 					<div className="bg-surface rounded-xl p-5">
 						<h3 className="font-display text-[22px] text-text mb-3">
-							Who you click with
+							What you vibe with
 						</h3>
 						<div className="space-y-2">
 							{comboType.clickWith.map((text, i) => (
-								<div
-									key={i}
-									className="flex items-start gap-3 bg-surface-2 rounded-lg p-3"
-								>
+								<div key={i} className="flex items-start gap-3 bg-surface-2 rounded-lg p-3">
 									<span className="text-glow text-[16px] mt-0.5 shrink-0">✦</span>
-									<p className="font-body text-[16px] text-text-secondary leading-[1.5]">
+									<p className="font-body text-[15px] text-text-secondary leading-[1.5]">
 										{text}
 									</p>
 								</div>
@@ -215,20 +105,17 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 					</div>
 				)}
 
-				{/* Clash with */}
+				{/* What drains you */}
 				{comboType.clashWith.length > 0 && (
 					<div className="bg-surface rounded-xl p-5">
 						<h3 className="font-display text-[22px] text-text mb-3">
-							Who you clash with
+							What drains you
 						</h3>
 						<div className="space-y-2">
 							{comboType.clashWith.map((text, i) => (
-								<div
-									key={i}
-									className="flex items-start gap-3 bg-surface-2 rounded-lg p-3"
-								>
+								<div key={i} className="flex items-start gap-3 bg-surface-2 rounded-lg p-3">
 									<span className="text-pulse text-[16px] mt-0.5 shrink-0">✦</span>
-									<p className="font-body text-[16px] text-text-secondary leading-[1.5]">
+									<p className="font-body text-[15px] text-text-secondary leading-[1.5]">
 										{text}
 									</p>
 								</div>
@@ -237,7 +124,49 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 					</div>
 				)}
 
-				{/* Section E: CTA */}
+				{/* Compatibility tiers: Best Bets, Good to Know, Might Work If... */}
+				{TIER_ORDER.map((tier) => {
+					const config = TIER_CONFIG[tier];
+					const typeIds = tiers[tier];
+
+					return (
+						<div key={tier} className="bg-surface rounded-xl p-5">
+							<h3 className="font-display text-[22px] text-text mb-4">
+								{config.heading}
+							</h3>
+							<div className="space-y-5">
+								{typeIds.map((targetId) => {
+									const targetType = COMBO_TYPES[targetId];
+									const compatText = compatTexts[targetId];
+
+									return (
+										<div key={targetId}>
+											{/* Type name with emoji and archetype pair */}
+											<div className="flex items-center gap-2.5 mb-1.5">
+												<span className={`text-[14px] shrink-0 ${config.markerColour}`}>✦</span>
+												<span className="text-[20px]">{targetType.emoji}</span>
+												<div>
+													<p className="font-body text-[16px] text-text font-medium leading-tight">
+														{targetType.name}
+													</p>
+													<p className="font-body text-[12px] text-text-muted">
+														{ARCHETYPES[targetType.primary].name}/{ARCHETYPES[targetType.secondary].name}
+													</p>
+												</div>
+											</div>
+											{/* Compatibility description */}
+											<p className="font-body text-[14px] text-text-secondary leading-[1.6] ml-[30px]">
+												{compatText}
+											</p>
+										</div>
+									);
+								})}
+							</div>
+						</div>
+					);
+				})}
+
+				{/* CTA */}
 				<div className="flex justify-center pt-4">
 					<button
 						onClick={onContinue}

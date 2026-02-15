@@ -12,6 +12,8 @@ export type Phase = 'landing' | 'tutorial' | 'phase1' | 'phase2' | 'phase3' | 'r
 
 export type PairId = 'pulse_glow' | 'pulse_cozy' | 'pulse_lore' | 'glow_cozy' | 'glow_lore' | 'cozy_lore';
 
+export type CompatibilityTier = 'bestBets' | 'goodToKnow' | 'mightWorkIf';
+
 // ─── Archetype Definitions ───
 
 export interface ArchetypeInfo {

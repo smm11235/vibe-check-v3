@@ -1,4 +1,4 @@
-import type { ComboTypeId } from './types';
+import type { ComboTypeId, CompatibilityTier } from './types';
 
 /**
  * Compatibility descriptions between all combo types.
@@ -174,5 +174,89 @@ export const COMPATIBILITY: Record<ComboTypeId, Record<ComboTypeId, string>> = {
     lore_pulse: 'They\'re excited about knowledge. You understand it emotionally. They might find you quiet. You might find them surface. But if they care about something, they\'ll respect the depth you bring and grow from it.',
     lore_glow: 'They master knowledge obsessively. You understand it emotionally. They might think you\'re not precise enough. You might think they\'re cold. But you\'re both devoted. Respect each other and you\'ll have real conversations. They teach you system. You teach them soul.',
     lore_cozy: 'Same type - you\'ll understand each other immediately and go deep fast. The risk is you create a bubble so comfortable neither of you wants to leave it. Keep pushing each other outward.',
+  },
+};
+
+/**
+ * Compatibility tiers for each combo type.
+ * Categorises the other 11 types into three groups:
+ * - bestBets: Natural allies, high chemistry (3-5 types)
+ * - goodToKnow: Moderate compatibility, worth exploring (3-5 types)
+ * - mightWorkIf: Different energies, requires effort (3-4 types)
+ *
+ * Derived from clickWith/clashWith data and the detailed compatibility text.
+ */
+export const COMPATIBILITY_TIERS: Record<ComboTypeId, Record<CompatibilityTier, ComboTypeId[]>> = {
+  // The Main Character — clicks with Pulse cousins + mirror + social Lore
+  pulse_glow: {
+    bestBets: ['pulse_cozy', 'pulse_lore', 'glow_pulse', 'lore_pulse'],
+    goodToKnow: ['glow_cozy', 'glow_lore', 'cozy_pulse'],
+    mightWorkIf: ['cozy_glow', 'cozy_lore', 'lore_glow', 'lore_cozy'],
+  },
+  // The Golden Hour — warmth draws lots of good matches
+  pulse_cozy: {
+    bestBets: ['pulse_glow', 'cozy_pulse', 'glow_cozy', 'cozy_glow'],
+    goodToKnow: ['pulse_lore', 'cozy_lore', 'glow_pulse', 'lore_pulse'],
+    mightWorkIf: ['glow_lore', 'lore_glow', 'lore_cozy'],
+  },
+  // The Tastemaker — knowledge-sharing types click, pure cozy types don't
+  pulse_lore: {
+    bestBets: ['pulse_glow', 'lore_pulse', 'glow_lore', 'cozy_lore'],
+    goodToKnow: ['pulse_cozy', 'lore_glow', 'lore_cozy', 'glow_pulse'],
+    mightWorkIf: ['cozy_pulse', 'cozy_glow', 'glow_cozy'],
+  },
+  // The Captain — driven types align, slow reflective types clash
+  glow_pulse: {
+    bestBets: ['pulse_glow', 'glow_cozy', 'glow_lore', 'lore_glow'],
+    goodToKnow: ['pulse_cozy', 'pulse_lore', 'cozy_pulse', 'lore_pulse'],
+    mightWorkIf: ['cozy_glow', 'cozy_lore', 'lore_cozy'],
+  },
+  // The Anchor — warm + growth types are natural fits
+  glow_cozy: {
+    bestBets: ['glow_pulse', 'glow_lore', 'cozy_glow', 'pulse_cozy'],
+    goodToKnow: ['cozy_pulse', 'cozy_lore', 'lore_cozy', 'lore_pulse'],
+    mightWorkIf: ['pulse_glow', 'pulse_lore', 'lore_glow'],
+  },
+  // The Optimizer — research + mastery types bond, pure warmth doesn't
+  glow_lore: {
+    bestBets: ['glow_pulse', 'glow_cozy', 'lore_glow', 'pulse_lore'],
+    goodToKnow: ['lore_pulse', 'lore_cozy', 'pulse_glow', 'cozy_lore'],
+    mightWorkIf: ['cozy_pulse', 'cozy_glow', 'pulse_cozy'],
+  },
+  // The Host — other warm + social types thrive, cold analyticals don't
+  cozy_pulse: {
+    bestBets: ['pulse_cozy', 'cozy_glow', 'cozy_lore', 'glow_cozy'],
+    goodToKnow: ['pulse_glow', 'lore_cozy', 'pulse_lore', 'lore_pulse'],
+    mightWorkIf: ['glow_pulse', 'glow_lore', 'lore_glow'],
+  },
+  // The Slow Burn — steady warm types click, chaotic fast types don't
+  cozy_glow: {
+    bestBets: ['glow_cozy', 'cozy_pulse', 'cozy_lore', 'lore_cozy'],
+    goodToKnow: ['pulse_cozy', 'glow_pulse', 'glow_lore', 'lore_pulse'],
+    mightWorkIf: ['pulse_glow', 'pulse_lore', 'lore_glow'],
+  },
+  // The Storyteller — taste-driven + warm types bond
+  cozy_lore: {
+    bestBets: ['lore_cozy', 'cozy_pulse', 'cozy_glow', 'pulse_lore'],
+    goodToKnow: ['lore_pulse', 'lore_glow', 'pulse_cozy', 'glow_cozy'],
+    mightWorkIf: ['pulse_glow', 'glow_pulse', 'glow_lore'],
+  },
+  // The Showrunner — social knowledge types align
+  lore_pulse: {
+    bestBets: ['pulse_lore', 'lore_glow', 'lore_cozy', 'pulse_glow'],
+    goodToKnow: ['pulse_cozy', 'glow_pulse', 'cozy_pulse', 'cozy_lore'],
+    mightWorkIf: ['glow_cozy', 'cozy_glow', 'glow_lore'],
+  },
+  // The Completionist — mastery + depth types, not casual social types
+  lore_glow: {
+    bestBets: ['glow_lore', 'lore_pulse', 'lore_cozy', 'pulse_lore'],
+    goodToKnow: ['glow_pulse', 'glow_cozy', 'cozy_lore', 'cozy_glow'],
+    mightWorkIf: ['pulse_glow', 'pulse_cozy', 'cozy_pulse'],
+  },
+  // The Sage — emotional depth + warm types, not surface energy
+  lore_cozy: {
+    bestBets: ['cozy_lore', 'lore_pulse', 'lore_glow', 'cozy_glow'],
+    goodToKnow: ['cozy_pulse', 'glow_cozy', 'pulse_cozy', 'pulse_lore'],
+    mightWorkIf: ['pulse_glow', 'glow_pulse', 'glow_lore'],
   },
 };

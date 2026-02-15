@@ -280,7 +280,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 				transition={{ type: 'spring', stiffness: 300, damping: 30 }}
 			>
 				<div className="flex items-center justify-center h-1/2 px-6 pt-8 opacity-40">
-					<p className={`font-body leading-[1.3] text-text text-center ${getQuestionFontSize(question.text)}`}>
+					<p className={`font-display leading-[1.3] text-text text-center ${getQuestionFontSize(question.text)}`}>
 						{question.text}
 					</p>
 				</div>
@@ -338,7 +338,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 			<div className="flex flex-col h-full">
 				{/* Question: upper ~50% */}
 				<div className="flex-1 flex items-center justify-center px-7 pt-10 pb-2">
-					<p className={`font-body leading-[1.3] text-text text-center ${questionFontSize}`}>
+					<p className={`font-display leading-[1.3] text-text text-center ${questionFontSize}`}>
 						{question.text}
 					</p>
 				</div>
