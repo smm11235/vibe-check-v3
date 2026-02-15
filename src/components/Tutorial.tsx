@@ -17,39 +17,39 @@ export function Tutorial({ onComplete }: TutorialProps) {
 			exit={{ opacity: 0, y: -20 }}
 			transition={{ duration: 0.35 }}
 		>
-			<h2 className="font-display text-[32px] leading-[1.1] text-text mb-6">
+			<h2 className="font-display text-[40px] leading-[1.1] text-text mb-8">
 				Swipe to vibe
 			</h2>
 
 			{/* Direction instructions */}
-			<div className="flex flex-col gap-4 mb-8 max-w-[280px]">
-				<div className="flex items-center gap-3">
-					<span className="text-[24px]">👈</span>
-					<p className="font-body text-[16px] text-text-secondary text-left">
+			<div className="flex flex-col gap-5 mb-8 max-w-[300px]">
+				<div className="flex items-center gap-4">
+					<span className="text-[28px]">👈</span>
+					<p className="font-body text-[18px] text-text-secondary text-left">
 						Swipe left for the first option
 					</p>
 				</div>
-				<div className="flex items-center gap-3">
-					<span className="text-[24px]">👉</span>
-					<p className="font-body text-[16px] text-text-secondary text-left">
+				<div className="flex items-center gap-4">
+					<span className="text-[28px]">👉</span>
+					<p className="font-body text-[18px] text-text-secondary text-left">
 						Swipe right for the second option
 					</p>
 				</div>
-				<div className="flex items-center gap-3">
-					<span className="text-[24px]">👆</span>
-					<p className="font-body text-[16px] text-text-secondary text-left">
+				<div className="flex items-center gap-4">
+					<span className="text-[28px]">👆</span>
+					<p className="font-body text-[18px] text-text-secondary text-left">
 						Swipe up to skip (but try not to!)
 					</p>
 				</div>
 			</div>
 
-			<p className="font-body text-[15px] text-text-secondary mb-10 max-w-[260px]">
+			<p className="font-body text-[17px] text-text-secondary mb-10 max-w-[280px]">
 				No wrong answers. Go with your gut.
 			</p>
 
 			<button
 				onClick={onComplete}
-				className="bg-accent text-bg font-body font-semibold text-[17px] px-10 py-3 rounded-full
+				className="bg-accent text-bg font-body font-semibold text-[18px] px-10 py-3.5 rounded-full
 					active:scale-[0.97] transition-transform duration-100 ease-out
 					shadow-elevated cursor-pointer"
 			>

@@ -177,7 +177,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 							duration: 0.3,
 						}}
 					>
-						<span className="text-[56px]">{result.comboType.emoji}</span>
+						<span className="text-[64px]">{result.comboType.emoji}</span>
 					</motion.div>
 				)}
 			</AnimatePresence>
@@ -185,7 +185,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 			{/* Typed combo name */}
 			{showTyping && (
 				<motion.h2
-					className="font-display text-[40px] leading-[1.1] mt-4 text-center px-4"
+					className="font-display text-[48px] leading-[1.1] mt-4 text-center px-4"
 					style={{ color: primaryColour }}
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
@@ -193,7 +193,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 				>
 					{typedText}
 					<motion.span
-						className="inline-block w-[3px] h-[36px] ml-1 align-middle"
+						className="inline-block w-[3px] h-[42px] ml-1 align-middle"
 						style={{ backgroundColor: primaryColour }}
 						animate={{ opacity: [1, 0] }}
 						transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse' }}
@@ -205,7 +205,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 			<AnimatePresence>
 				{showTagline && (
 					<motion.p
-						className="font-body text-[16px] text-text-secondary mt-3 text-center px-6 max-w-[320px]"
+						className="font-body text-[18px] text-text-secondary mt-3 text-center px-6 max-w-[320px]"
 						initial={{ opacity: 0, y: 10 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.4, delay: TIMING.taglineDelay }}
@@ -253,7 +253,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 			<AnimatePresence>
 				{showCta && (
 					<motion.button
-						className="mt-10 bg-accent text-bg font-body font-semibold text-[17px] px-10 py-3 rounded-full
+						className="mt-10 bg-accent text-bg font-body font-semibold text-[18px] px-10 py-3.5 rounded-full
 							active:scale-[0.97] transition-transform duration-100 ease-out
 							shadow-elevated cursor-pointer"
 						initial={{ opacity: 0, y: 20 }}

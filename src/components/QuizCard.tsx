@@ -159,7 +159,7 @@ export function QuizCard({ question, onAnswer, onSkip, isTop, stackIndex }: Quiz
 				transition={{ type: 'spring', stiffness: 300, damping: 30 }}
 			>
 				<div className="flex items-center justify-center h-full px-6 opacity-40">
-					<p className="font-body text-[20px] leading-[1.3] text-text text-center">
+					<p className="font-body text-[24px] leading-[1.3] text-text text-center">
 						{question.text}
 					</p>
 				</div>
@@ -215,7 +215,7 @@ export function QuizCard({ question, onAnswer, onSkip, isTop, stackIndex }: Quiz
 
 			{/* Question text */}
 			<div className="flex items-center justify-center h-full px-8 py-16">
-				<p className="font-body text-[24px] leading-[1.3] text-text text-center">
+				<p className="font-body text-[28px] leading-[1.3] text-text text-center">
 					{question.text}
 				</p>
 			</div>
@@ -225,7 +225,7 @@ export function QuizCard({ question, onAnswer, onSkip, isTop, stackIndex }: Quiz
 				className="absolute bottom-6 left-5 max-w-[40%] pointer-events-none"
 				style={{ opacity: leftTextOpacity }}
 			>
-				<p className="font-body text-[16px] leading-[1.3] text-text text-left">
+				<p className="font-body text-[18px] leading-[1.3] text-text text-left">
 					{getOptionAText(question)}
 				</p>
 			</motion.div>
@@ -235,7 +235,7 @@ export function QuizCard({ question, onAnswer, onSkip, isTop, stackIndex }: Quiz
 				className="absolute bottom-6 right-5 max-w-[40%] pointer-events-none"
 				style={{ opacity: rightTextOpacity }}
 			>
-				<p className="font-body text-[16px] leading-[1.3] text-text text-right">
+				<p className="font-body text-[18px] leading-[1.3] text-text text-right">
 					{getOptionBText(question)}
 				</p>
 			</motion.div>

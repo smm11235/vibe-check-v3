@@ -40,12 +40,10 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 			exit={{ opacity: 0, y: -20 }}
 			transition={{ duration: 0.4 }}
 		>
-			<div className="px-5 py-8 pb-24 space-y-8">
+			<div className="px-5 py-8 pb-24 space-y-6">
 
 				{/* Section A: Combo Type Card */}
-				<div
-					className="bg-surface rounded-xl p-5 pl-7 shadow-card relative overflow-hidden"
-				>
+				<div className="bg-surface rounded-xl p-5 pl-7 shadow-card relative overflow-hidden">
 					{/* Gradient left border: primary → secondary archetype colour */}
 					<div
 						className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
@@ -53,25 +51,26 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 							background: `linear-gradient(to bottom, ${primaryInfo.color}, ${secondaryInfo.color})`,
 						}}
 					/>
-					<div className="flex items-center gap-2 mb-2">
-						<span className="text-[28px]">{comboType.emoji}</span>
-						<h2 className="font-display text-[28px] leading-[1.1] text-text">
+
+					<div className="flex items-center gap-3 mb-3">
+						<span className="text-[36px]">{comboType.emoji}</span>
+						<h2 className="font-display text-[32px] leading-[1.1] text-text">
 							{comboType.name}
 						</h2>
 					</div>
 
-					<p className="font-body text-[16px] text-accent mb-3">
+					<p className="font-body text-[18px] text-accent mb-3">
 						{comboType.tagline}
 					</p>
 
-					<p className="font-body text-[15px] leading-[1.6] text-text-secondary mb-4">
+					<p className="font-body text-[16px] leading-[1.6] text-text-secondary mb-4">
 						{comboType.description}
 					</p>
 
 					{/* Primary / Secondary badges */}
-					<div className="flex gap-2">
+					<div className="flex flex-wrap gap-2">
 						<span
-							className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-body font-medium"
+							className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[14px] font-body font-medium"
 							style={{
 								backgroundColor: `${primaryInfo.color}20`,
 								color: primaryInfo.color,
@@ -80,7 +79,7 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 							{primaryInfo.emoji} Primary: {primaryInfo.name}
 						</span>
 						<span
-							className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-body font-medium"
+							className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[14px] font-body font-medium"
 							style={{
 								backgroundColor: `${secondaryInfo.color}20`,
 								color: secondaryInfo.color,
@@ -92,12 +91,12 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 				</div>
 
 				{/* Section B: Vibe DNA Breakdown */}
-				<div>
-					<h3 className="font-display text-[20px] text-text mb-4">
+				<div className="bg-surface rounded-xl p-5">
+					<h3 className="font-display text-[24px] text-text mb-4">
 						Vibe DNA
 					</h3>
 
-					<div className="space-y-3">
+					<div className="space-y-4">
 						{ALL_ARCHETYPES.map((archetype, i) => {
 							const info = ARCHETYPES[archetype];
 							const pct = percentages[archetype];
@@ -109,11 +108,11 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 									animate={{ opacity: 1, x: 0 }}
 									transition={{ delay: 0.3 + i * 0.2, duration: 0.4 }}
 								>
-									<span className="text-[18px] w-7">{info.emoji}</span>
-									<span className="font-body text-[15px] text-text w-14">
+									<span className="text-[20px] w-7">{info.emoji}</span>
+									<span className="font-body text-[16px] text-text w-14">
 										{info.name}
 									</span>
-									<div className="flex-1 h-[8px] bg-surface-2 rounded-full overflow-hidden">
+									<div className="flex-1 h-[10px] bg-surface-2 rounded-full overflow-hidden">
 										<motion.div
 											className="h-full rounded-full"
 											style={{ backgroundColor: info.color }}
@@ -126,7 +125,7 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 											}}
 										/>
 									</div>
-									<span className="font-body text-[15px] text-text-secondary tabular-nums w-10 text-right">
+									<span className="font-body text-[16px] text-text-secondary tabular-nums w-12 text-right">
 										{pct}%
 									</span>
 								</motion.div>
@@ -137,11 +136,11 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 
 				{/* Section C: Karma Earned */}
 				<div className="bg-surface rounded-xl p-5">
-					<h3 className="font-display text-[20px] text-accent mb-4">
+					<h3 className="font-display text-[24px] text-accent mb-4">
 						YOU EARNED 100 PX
 					</h3>
 
-					<div className="space-y-2">
+					<div className="space-y-3">
 						{ALL_ARCHETYPES.map((archetype) => {
 							const info = ARCHETYPES[archetype];
 							const karmaPts = karma[archetype];
@@ -152,18 +151,18 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 									className="flex items-center justify-between"
 								>
 									<div className="flex items-center gap-2">
-										<span className="text-[14px]">{info.emoji}</span>
-										<span className="font-body text-[14px] text-text-secondary">
+										<span className="text-[16px]">{info.emoji}</span>
+										<span className="font-body text-[16px] text-text-secondary">
 											{info.name}
 										</span>
 										{isPrimary && (
-											<span className="text-[11px] px-1.5 py-0.5 rounded bg-surface-2 text-text-secondary font-body">
+											<span className="text-[12px] px-2 py-0.5 rounded bg-surface-2 text-text-secondary font-body">
 												primary
 											</span>
 										)}
 									</div>
 									<span
-										className="font-body text-[14px] font-medium tabular-nums"
+										className="font-body text-[16px] font-medium tabular-nums"
 										style={{ color: info.color }}
 									>
 										+{karmaPts} px
@@ -175,75 +174,74 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 				</div>
 
 				{/* Section D: Compatibility Preview */}
-				<div>
-					{/* Mirror type teaser */}
-					{mirrorType && mirrorPair && (
-						<div className="bg-surface rounded-xl p-5 mb-4">
-							<h3 className="font-display text-[18px] text-text mb-2">
-								Your mirror type
-							</h3>
-							<div className="flex items-center gap-2 mb-2">
-								<span className="text-[20px]">{mirrorType.emoji}</span>
-								<span className="font-body text-[16px] text-text">
-									{mirrorType.name}
-								</span>
-							</div>
-							<p className="font-body text-[14px] text-text-secondary leading-[1.5]">
-								{mirrorPair.difference}
-							</p>
-						</div>
-					)}
 
-					{/* Click with */}
-					{comboType.clickWith.length > 0 && (
-						<div className="mb-4">
-							<h3 className="font-display text-[18px] text-text mb-3">
-								Who you click with
-							</h3>
-							<div className="space-y-2">
-								{comboType.clickWith.map((text, i) => (
-									<div
-										key={i}
-										className="flex items-start gap-2 bg-surface rounded-lg p-3"
-									>
-										<span className="text-glow text-[14px] mt-0.5">✦</span>
-										<p className="font-body text-[14px] text-text-secondary leading-[1.5]">
-											{text}
-										</p>
-									</div>
-								))}
-							</div>
+				{/* Mirror type */}
+				{mirrorType && mirrorPair && (
+					<div className="bg-surface rounded-xl p-5">
+						<h3 className="font-display text-[22px] text-text mb-3">
+							Your mirror type
+						</h3>
+						<div className="flex items-center gap-3 mb-2">
+							<span className="text-[24px]">{mirrorType.emoji}</span>
+							<span className="font-body text-[18px] text-text">
+								{mirrorType.name}
+							</span>
 						</div>
-					)}
+						<p className="font-body text-[16px] text-text-secondary leading-[1.5]">
+							{mirrorPair.difference}
+						</p>
+					</div>
+				)}
 
-					{/* Clash with */}
-					{comboType.clashWith.length > 0 && (
-						<div>
-							<h3 className="font-display text-[18px] text-text mb-3">
-								Who you clash with
-							</h3>
-							<div className="space-y-2">
-								{comboType.clashWith.map((text, i) => (
-									<div
-										key={i}
-										className="flex items-start gap-2 bg-surface rounded-lg p-3"
-									>
-										<span className="text-pulse text-[14px] mt-0.5">✦</span>
-										<p className="font-body text-[14px] text-text-secondary leading-[1.5]">
-											{text}
-										</p>
-									</div>
-								))}
-							</div>
+				{/* Click with */}
+				{comboType.clickWith.length > 0 && (
+					<div className="bg-surface rounded-xl p-5">
+						<h3 className="font-display text-[22px] text-text mb-3">
+							Who you click with
+						</h3>
+						<div className="space-y-2">
+							{comboType.clickWith.map((text, i) => (
+								<div
+									key={i}
+									className="flex items-start gap-3 bg-surface-2 rounded-lg p-3"
+								>
+									<span className="text-glow text-[16px] mt-0.5 shrink-0">✦</span>
+									<p className="font-body text-[16px] text-text-secondary leading-[1.5]">
+										{text}
+									</p>
+								</div>
+							))}
 						</div>
-					)}
-				</div>
+					</div>
+				)}
+
+				{/* Clash with */}
+				{comboType.clashWith.length > 0 && (
+					<div className="bg-surface rounded-xl p-5">
+						<h3 className="font-display text-[22px] text-text mb-3">
+							Who you clash with
+						</h3>
+						<div className="space-y-2">
+							{comboType.clashWith.map((text, i) => (
+								<div
+									key={i}
+									className="flex items-start gap-3 bg-surface-2 rounded-lg p-3"
+								>
+									<span className="text-pulse text-[16px] mt-0.5 shrink-0">✦</span>
+									<p className="font-body text-[16px] text-text-secondary leading-[1.5]">
+										{text}
+									</p>
+								</div>
+							))}
+						</div>
+					</div>
+				)}
 
 				{/* Section E: CTA */}
 				<div className="flex justify-center pt-4">
 					<button
 						onClick={onContinue}
-						className="bg-accent text-bg font-body font-semibold text-[17px] px-10 py-3 rounded-full
+						className="bg-accent text-bg font-body font-semibold text-[18px] px-10 py-3.5 rounded-full
 							active:scale-[0.97] transition-transform duration-100 ease-out
 							shadow-elevated cursor-pointer"
 					>

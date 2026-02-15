@@ -205,11 +205,11 @@ export function ProfilePrompts({ result, onContinue }: ProfilePromptsProps) {
 		>
 			<div className="px-5 py-8 pb-24">
 				{/* Header */}
-				<h2 className="font-display text-[28px] text-text mb-2">
+				<h2 className="font-display text-[32px] text-text mb-2">
 					Show your vibe
 				</h2>
-				<p className="font-body text-[15px] text-text-secondary mb-6">
-					Pick a prompt and add a photo - let people see the real you
+				<p className="font-body text-[17px] text-text-secondary mb-6">
+					Pick a prompt and add a photo - show the real you
 				</p>
 
 				{/* Prompt cards */}
@@ -233,14 +233,14 @@ export function ProfilePrompts({ result, onContinue }: ProfilePromptsProps) {
 									className="w-full text-left p-4 cursor-pointer"
 								>
 									<div className="flex items-start justify-between gap-3">
-										<p className="font-body text-[15px] text-text leading-[1.4] flex-1">
+										<p className="font-body text-[17px] text-text leading-[1.4] flex-1">
 											{prompt}
 										</p>
 										{promptHasContent ? (
 											<span className="text-glow text-[14px] shrink-0">✓</span>
 										) : (
 											<motion.span
-												className="text-text-muted text-[18px] shrink-0"
+												className="text-text-muted text-[20px] shrink-0"
 												animate={{ rotate: isExpanded ? 45 : 0 }}
 												transition={{ duration: 0.2 }}
 											>
@@ -360,10 +360,10 @@ export function ProfilePrompts({ result, onContinue }: ProfilePromptsProps) {
 															active:border-accent/60 active:bg-accent/5 transition-colors"
 													>
 														<span className="text-[32px]">📸</span>
-														<span className="font-body text-[15px] text-text-secondary">
+														<span className="font-body text-[17px] text-text-secondary">
 															Add a photo or video
 														</span>
-														<span className="font-body text-[12px] text-text-muted">
+														<span className="font-body text-[14px] text-text-muted">
 															Tap to choose from library
 														</span>
 													</button>
@@ -371,7 +371,7 @@ export function ProfilePrompts({ result, onContinue }: ProfilePromptsProps) {
 													{/* Text-only fallback */}
 													<button
 														onClick={() => setTextModeIndex(i)}
-														className="w-full mt-3 py-2 font-body text-[13px] text-text-muted cursor-pointer
+														className="w-full mt-3 py-2 font-body text-[14px] text-text-muted cursor-pointer
 															active:opacity-70 transition-opacity text-center"
 													>
 														Or just write something
@@ -391,7 +391,7 @@ export function ProfilePrompts({ result, onContinue }: ProfilePromptsProps) {
 					{hasInteracted ? (
 						<button
 							onClick={onContinue}
-							className="bg-accent text-bg font-body font-semibold text-[17px] px-10 py-3 rounded-full
+							className="bg-accent text-bg font-body font-semibold text-[18px] px-10 py-3.5 rounded-full
 								active:scale-[0.97] transition-transform duration-100 ease-out
 								shadow-elevated cursor-pointer"
 						>
