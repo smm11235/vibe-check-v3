@@ -5,8 +5,8 @@ interface TutorialProps {
 }
 
 /**
- * Placeholder tutorial screen.
- * Will be expanded with actual swipe demo in Phase 3.
+ * Tutorial screen explaining swipe mechanics.
+ * Shows direction instructions and a "Got it" button to proceed.
  */
 export function Tutorial({ onComplete }: TutorialProps) {
 	return (
@@ -17,18 +17,34 @@ export function Tutorial({ onComplete }: TutorialProps) {
 			exit={{ opacity: 0, y: -20 }}
 			transition={{ duration: 0.35 }}
 		>
-			<p className="text-[40px] mb-4">👆</p>
-
-			<h2 className="font-display text-[32px] leading-[1.1] text-text mb-3">
-				How it works
+			<h2 className="font-display text-[32px] leading-[1.1] text-text mb-6">
+				Swipe to vibe
 			</h2>
 
-			<p className="font-body text-[17px] leading-[1.4] text-text-secondary max-w-[300px] mb-4">
-				Swipe right for yeah, left for nope. Go with your gut - there's no wrong answer.
-			</p>
+			{/* Direction instructions */}
+			<div className="flex flex-col gap-4 mb-8 max-w-[280px]">
+				<div className="flex items-center gap-3">
+					<span className="text-[24px]">👈</span>
+					<p className="font-body text-[16px] text-text-secondary text-left">
+						Swipe left for the first option
+					</p>
+				</div>
+				<div className="flex items-center gap-3">
+					<span className="text-[24px]">👉</span>
+					<p className="font-body text-[16px] text-text-secondary text-left">
+						Swipe right for the second option
+					</p>
+				</div>
+				<div className="flex items-center gap-3">
+					<span className="text-[24px]">👆</span>
+					<p className="font-body text-[16px] text-text-secondary text-left">
+						Swipe up to skip (but try not to!)
+					</p>
+				</div>
+			</div>
 
-			<p className="text-text-muted text-[15px] mb-10">
-				Swipe up to skip (but try not to!)
+			<p className="font-body text-[15px] text-text-muted mb-10 max-w-[260px]">
+				No wrong answers. Go with your gut.
 			</p>
 
 			<button

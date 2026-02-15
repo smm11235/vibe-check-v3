@@ -105,6 +105,13 @@ html {
 	scrollbar-width: none;
 }
 
+/* ─── Quiz Container (prevent iOS pull-to-refresh during card swiping) ─── */
+
+.quiz-container {
+	touch-action: none;
+	overscroll-behavior: none;
+}
+
 /* ─── Reduced Motion ─── */
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Layout } from '@/components/Layout';
 import { Landing } from '@/components/Landing';
@@ -5,6 +6,7 @@ import { Tutorial } from '@/components/Tutorial';
 import { Quiz } from '@/components/Quiz';
 import { Results } from '@/components/Results';
 import { useAppState } from '@/hooks/useAppState';
+import type { QuizResult } from '@/data/types';
 
 /**
  * Root app component.
@@ -13,6 +15,25 @@ import { useAppState } from '@/hooks/useAppState';
  */
 export function App() {
 	const { phase, advance, goTo, reset } = useAppState();
+	const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
+
+	// Handle the reveal phase: skip straight to results for now
+	// (reveal animation comes in Phase 4)
+	useEffect(() => {
+		if (phase === 'reveal') {
+			goTo('results');
+		}
+	}, [phase, goTo]);
+
+	function handleQuizComplete(result: QuizResult) {
+		setQuizResult(result);
+		goTo('reveal');
+	}
+
+	function handleRestart() {
+		setQuizResult(null);
+		reset();
+	}
 
 	const renderScreen = () => {
 		switch (phase) {
@@ -25,17 +46,17 @@ export function App() {
 			case 'phase1':
 			case 'phase2':
 			case 'phase3':
-				return <Quiz key={phase} phase={phase} onComplete={advance} />;
+				// Stable key so the quiz doesn't remount between phases
+				return <Quiz key="quiz" onComplete={handleQuizComplete} />;
 
 			case 'reveal':
-				// For now, skip straight to results. Reveal animation comes in Phase 4.
-				goTo('results');
+				// Handled by useEffect above; render nothing during transition
 				return null;
 
 			case 'results':
 			case 'prompts':
 			case 'done':
-				return <Results key="results" onRestart={reset} />;
+				return <Results key="results" result={quizResult} onRestart={handleRestart} />;
 
 			default:
 				return null;

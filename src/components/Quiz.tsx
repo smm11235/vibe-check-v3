@@ -1,59 +1,138 @@
-import { motion } from 'framer-motion';
-import type { Phase } from '@/data/types';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { QuizResult } from '@/data/types';
+import { useQuizEngine } from '@/hooks/useQuizEngine';
+import { QuizCard } from '@/components/QuizCard';
+import { ProgressBar } from '@/components/ProgressBar';
+import { SwipeHints } from '@/components/SwipeHints';
+import { EmojiReaction } from '@/components/EmojiReaction';
+
+// ─── Props ───
 
 interface QuizProps {
-	phase: Phase;
-	onComplete: () => void;
+	onComplete: (result: QuizResult) => void;
 }
 
-/**
- * Placeholder quiz screen.
- * Will be replaced with the full QuizCard + engine integration in Phase 3.
- * For now, shows which phase we're in and a button to advance.
- */
-export function Quiz({ phase, onComplete }: QuizProps) {
-	const phaseLabels: Record<string, string> = {
-		phase1: 'Phase 1: Base Questions',
-		phase2: 'Phase 2: Combo Questions',
-		phase3: 'Phase 3: Mirror Questions',
-	};
+// ─── Component ───
 
-	const label = phaseLabels[phase] ?? 'Quiz';
+/**
+ * Quiz orchestrator.
+ * Wires the quiz engine with the swipeable card UI, progress bar,
+ * swipe hints, and emoji reactions. Handles all three quiz phases
+ * as a seamless card flow.
+ */
+export function Quiz({ onComplete }: QuizProps) {
+	const engine = useQuizEngine();
+	const [reactionEmoji, setReactionEmoji] = useState<string | null>(null);
+	const [isIdle, setIsIdle] = useState(false);
+	const [exitDirection, setExitDirection] = useState<number>(0);
+	const idleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const hasCompletedRef = useRef(false);
+
+	// Notify parent when the quiz is complete
+	useEffect(() => {
+		if (engine.isComplete && engine.result && !hasCompletedRef.current) {
+			hasCompletedRef.current = true;
+			// Small delay so the last card exit animation plays
+			const timer = setTimeout(() => {
+				onComplete(engine.result!);
+			}, 400);
+			return () => clearTimeout(timer);
+		}
+	}, [engine.isComplete, engine.result, onComplete]);
+
+	// Idle timer: 5s after last interaction → show hints again
+	const resetIdleTimer = useCallback(() => {
+		setIsIdle(false);
+		if (idleTimeoutRef.current) {
+			clearTimeout(idleTimeoutRef.current);
+		}
+		idleTimeoutRef.current = setTimeout(() => setIsIdle(true), 5000);
+	}, []);
+
+	// Start idle timer on mount
+	useEffect(() => {
+		resetIdleTimer();
+		return () => {
+			if (idleTimeoutRef.current) {
+				clearTimeout(idleTimeoutRef.current);
+			}
+		};
+	}, [resetIdleTimer]);
+
+	function handleAnswer(side: 'left' | 'right') {
+		const question = engine.currentQuestion;
+		if (!question) return;
+
+		// Set exit direction for card animation
+		setExitDirection(side === 'left' ? -1 : 1);
+
+		// Trigger emoji reaction from the selected option
+		const option = side === 'left' ? question.optionA : question.optionB;
+		setReactionEmoji(option.emoji);
+
+		engine.answer(side);
+		resetIdleTimer();
+	}
+
+	function handleSkip() {
+		if (!engine.currentQuestion) return;
+
+		// Swipe up exit
+		setExitDirection(0);
+		engine.skip();
+		resetIdleTimer();
+	}
 
 	return (
 		<motion.div
-			className="flex-1 flex flex-col items-center justify-center px-5 text-center"
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			exit={{ opacity: 0, y: -20 }}
-			transition={{ duration: 0.35 }}
+			className="flex-1 flex flex-col quiz-container"
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			exit={{ opacity: 0 }}
+			transition={{ duration: 0.3 }}
 		>
-			{/* Placeholder progress bar */}
-			<div className="w-full h-1 bg-surface-2 rounded-full mb-8">
-				<div className="h-full rounded-full bg-gradient-to-r from-pulse via-glow via-cozy to-lore w-1/3" />
+			<ProgressBar progress={engine.progress} />
+
+			{/* Card stack area */}
+			<div className="relative flex-1 flex items-center justify-center">
+				<AnimatePresence mode="popLayout" custom={exitDirection}>
+					{/* Next card (behind, non-interactive) */}
+					{engine.nextQuestion && (
+						<QuizCard
+							key={`next-${engine.nextQuestion.id}`}
+							question={engine.nextQuestion}
+							onAnswer={() => {}}
+							onSkip={() => {}}
+							isTop={false}
+							stackIndex={1}
+						/>
+					)}
+
+					{/* Current card (top, interactive) */}
+					{engine.currentQuestion && (
+						<QuizCard
+							key={engine.currentQuestion.id}
+							question={engine.currentQuestion}
+							onAnswer={handleAnswer}
+							onSkip={handleSkip}
+							isTop={true}
+							stackIndex={0}
+						/>
+					)}
+				</AnimatePresence>
+
+				{/* Emoji float-up reaction */}
+				<EmojiReaction
+					emoji={reactionEmoji}
+					onComplete={() => setReactionEmoji(null)}
+				/>
 			</div>
 
-			<p className="text-text-muted text-[12px] uppercase tracking-widest mb-4">
-				{label}
-			</p>
-
-			<div className="w-[90%] max-w-[370px] bg-surface rounded-xl p-6 shadow-card mb-8">
-				<p className="font-body text-[22px] leading-[1.3] text-text">
-					Would you rather start the group chat or wait for someone to text you first?
-				</p>
-			</div>
-
-			<p className="text-text-muted text-[11px] mb-6">
-				← Swipe left or right →
-			</p>
-
-			<button
-				onClick={onComplete}
-				className="bg-surface-2 text-text font-body font-medium text-[15px] px-8 py-3 rounded-full
-					active:scale-[0.97] transition-transform duration-100 ease-out cursor-pointer"
-			>
-				Skip to next phase →
-			</button>
+			<SwipeHints
+				questionsAnswered={engine.questionsAnswered}
+				isIdle={isIdle}
+			/>
 		</motion.div>
 	);
 }
