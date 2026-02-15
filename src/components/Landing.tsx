@@ -36,7 +36,11 @@ export function Landing({ onStart }: LandingProps) {
 			</button>
 
 			<p className="text-text-muted text-[14px] mt-6">
-				Takes about 2 minutes
+				Takes about 5 minutes
+			</p>
+
+			<p className="text-text-muted text-[11px] mt-auto pb-4 opacity-50">
+				{__APP_VERSION__}
 			</p>
 		</motion.div>
 	);

@@ -486,7 +486,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 				</div>
 
 				{/* Bottom: emoji row pinned near bottom edge */}
-				<div className="flex items-center justify-between px-12 pb-[30px] shrink-0 pointer-events-none">
+				<div className="flex items-center justify-between px-12 pb-[80px] shrink-0 pointer-events-none">
 					<motion.span className="text-[36px]" style={{ opacity: leftEmojiOpacity }}>
 						{leftOption.emoji}
 					</motion.span>
