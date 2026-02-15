@@ -20,7 +20,7 @@ export function SwipeHints({ questionsAnswered, isIdle }: SwipeHintsProps) {
 			transition={{ duration: 0.3 }}
 		>
 			<p className="font-body text-[13px] text-text-muted tracking-wide">
-				← Left&nbsp;&nbsp;&nbsp;↑ Skip&nbsp;&nbsp;&nbsp;Right →
+				← Left&nbsp;&nbsp;&nbsp;↓ Skip&nbsp;&nbsp;&nbsp;Right →
 			</p>
 		</motion.div>
 	);

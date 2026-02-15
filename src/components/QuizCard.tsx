@@ -27,6 +27,15 @@ const ARCHETYPE_COLOURS: Record<string, string> = {
 	lore: 'var(--color-lore)',
 };
 
+/** Skip text variants — one is chosen per question via deterministic hash */
+const SKIP_VARIANTS = [
+	'Both? Or Neither?',
+	"I don't know!",
+	'Not answering this!',
+	'Too hard, next!',
+	'Nah, skip',
+];
+
 // ─── Props ───
 
 interface QuizCardProps {
@@ -55,6 +64,16 @@ function shouldSwapOptions(questionId: string): boolean {
 	return (hash & 1) === 0;
 }
 
+/** Pick a skip text variant deterministically from the question ID */
+function getSkipText(questionId: string): string {
+	let hash = 7; // different seed from shouldSwapOptions
+	for (let i = 0; i < questionId.length; i++) {
+		hash = ((hash << 5) - hash) + questionId.charCodeAt(i);
+		hash |= 0;
+	}
+	return SKIP_VARIANTS[Math.abs(hash) % SKIP_VARIANTS.length];
+}
+
 /** Get the archetype colour for an option, falling back to accent */
 function getOptionColour(question: AnyQuestion, engineSide: 'left' | 'right'): string {
 	const option = engineSide === 'left' ? question.optionA : question.optionB;
@@ -74,6 +93,12 @@ function getQuestionFontSize(text: string): string {
 	return 'text-[26px]';
 }
 
+/** Responsive font size for revealed answer text (larger since only one shows at a time) */
+function getAnswerFontSize(text: string): string {
+	if (text.length <= 30) return 'text-[30px]';
+	return 'text-[24px]';
+}
+
 function clamp(value: number, min: number, max: number): number {
 	return Math.min(Math.max(value, min), max);
 }
@@ -88,11 +113,13 @@ function haptic(pattern: number | number[]) {
 // ─── Component ───
 
 /**
- * Swipeable quiz card with physics-based exit animations.
+ * Swipeable quiz card with Reigns-style hidden answers.
  *
- * Layout: question in upper half, left option (with ← arrow) in 50-75% zone,
- * right option (with → arrow) in 75-100% zone. Options use full card width
- * for better readability.
+ * Layout: question in upper half, direction arrows in lower half.
+ * Answers are hidden by default and revealed as the user drags:
+ * - Drag left → left answer fades in (arrows fade out)
+ * - Drag right → right answer fades in (arrows fade out)
+ * - Drag down → skip text variant fades in (arrows fade out)
  *
  * Answer sides are randomised per question (deterministic hash of question.id)
  * to prevent positional bias. The swap is transparent to the engine — onAnswer
@@ -106,6 +133,9 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 
 	// Randomise which option appears on which side (stable per question)
 	const isSwapped = useMemo(() => shouldSwapOptions(question.id), [question.id]);
+
+	// Pick a skip text for this question (stable per question)
+	const skipText = useMemo(() => getSkipText(question.id), [question.id]);
 
 	/** Map a visual side to the engine answer side, accounting for randomisation */
 	function resolveAnswer(visualSide: 'left' | 'right'): 'left' | 'right' {
@@ -138,19 +168,28 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 	const rotate = useTransform(x, [-200, 0, 200], [-MAX_ROTATION, 0, MAX_ROTATION]);
 	const leftGlowOpacity = useTransform(x, [-150, -SWIPE_THRESHOLD_X, 0], [0.6, 0.3, 0]);
 	const rightGlowOpacity = useTransform(x, [0, SWIPE_THRESHOLD_X, 150], [0, 0.3, 0.6]);
-	const skipIndicatorOpacity = useTransform(y, [0, -30, -SWIPE_THRESHOLD_Y], [0, 0.3, 0.8]);
 
-	// Option opacity: active option brightens, inactive dims
-	const leftTextOpacity = useTransform(
-		x, [-150, -30, 0, 30, 150], [1, 0.85, 0.6, 0.45, 0.35],
+	// Arrows fade out as card moves in any direction
+	const arrowsOpacity = useTransform(
+		[x, y],
+		(latest: number[]) => {
+			const absX = Math.abs(latest[0]);
+			const posY = Math.max(latest[1], 0);
+			return 1 - Math.min(Math.max(absX, posY) / 40, 1);
+		},
 	);
-	const rightTextOpacity = useTransform(
-		x, [-150, -30, 0, 30, 150], [0.35, 0.45, 0.6, 0.85, 1],
-	);
+
+	// Answer text fades in as card moves left/right
+	const leftAnswerOpacity = useTransform(x, [-100, -30, 0], [1, 0.4, 0]);
+	const rightAnswerOpacity = useTransform(x, [0, 30, 100], [0, 0.4, 1]);
+
+	// Skip text fades in as card moves down
+	const skipTextOpacity = useTransform(y, [0, 25, SWIPE_THRESHOLD_Y], [0, 0.4, 0.8]);
 
 	/**
 	 * Animate the card off-screen with physics-based timing, then fire the callback.
 	 * Reports the LOGICAL (engine) side to onExitStart for emoji reactions.
+	 * Skip still reports 'up' semantically (means "skip" to the parent component).
 	 */
 	function exitCard(
 		direction: -1 | 0 | 1,
@@ -170,8 +209,8 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 		}
 
 		if (direction === 0) {
-			// Skip: fly upward
-			const targetY = -600;
+			// Skip: fly downward
+			const targetY = 600;
 			const speed = Math.max(Math.abs(velocityY), BASE_EXIT_SPEED);
 			const duration = clamp(Math.abs(targetY - y.get()) / speed, MIN_EXIT_DURATION, MAX_EXIT_DURATION);
 
@@ -209,7 +248,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 		if (isExiting) return;
 
 		const pastHorizontal = Math.abs(info.offset.x) > SWIPE_THRESHOLD_X;
-		const pastVertical = info.offset.y < -SWIPE_THRESHOLD_Y;
+		const pastVertical = info.offset.y > SWIPE_THRESHOLD_Y;
 
 		if ((pastHorizontal || pastVertical) && !thresholdFiredRef.current) {
 			thresholdFiredRef.current = true;
@@ -238,8 +277,8 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 			return;
 		}
 
-		// Swipe up → skip
-		if (offset.y < -SWIPE_THRESHOLD_Y) {
+		// Swipe down → skip
+		if (offset.y > SWIPE_THRESHOLD_Y) {
 			exitCard(0, velocity.x, velocity.y, () => onSkip());
 			return;
 		}
@@ -324,17 +363,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 				}}
 			/>
 
-			{/* Skip indicator (drag-up feedback) */}
-			<motion.div
-				className="absolute top-4 left-0 right-0 flex justify-center pointer-events-none z-10"
-				style={{ opacity: skipIndicatorOpacity }}
-			>
-				<span className="text-text-muted text-[13px] font-body font-medium uppercase tracking-wider">
-					Skip ↑
-				</span>
-			</motion.div>
-
-			{/* Card content: question top half, options bottom half */}
+			{/* Card content: question top half, arrows/answers bottom half */}
 			<div className="flex flex-col h-full">
 				{/* Question: upper ~50% */}
 				<div className="flex-1 flex items-center justify-center px-7 pt-10 pb-2">
@@ -343,37 +372,59 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 					</p>
 				</div>
 
-				{/* Options: lower ~50%, pinned to bottom */}
-				<div className="flex-1 flex flex-col justify-end px-6 pb-6">
-					{/* Left option: arrow above, left-justified */}
+				{/* Lower half: arrows at rest, answers/skip on drag */}
+				<div className="flex-1 relative">
+					{/* Default arrows — visible when card is at rest */}
 					<motion.div
-						className="mb-5"
-						style={{ opacity: leftTextOpacity }}
+						className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none"
+						style={{ opacity: arrowsOpacity }}
 					>
-						<span
-							className="block text-[28px] font-bold mb-1 leading-none"
-							style={{ color: leftColour }}
-						>
-							←
+						<div className="flex items-center justify-between w-full px-12">
+							<span
+								className="text-[44px] font-bold leading-none"
+								style={{ color: leftColour }}
+							>
+								←
+							</span>
+							<span
+								className="text-[44px] font-bold leading-none"
+								style={{ color: rightColour }}
+							>
+								→
+							</span>
+						</div>
+						<span className="text-[36px] text-text-muted font-bold leading-none">
+							↓
 						</span>
-						<p className="font-display text-[24px] leading-[1.3] text-text">
+					</motion.div>
+
+					{/* Left answer — revealed when dragging left */}
+					<motion.div
+						className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
+						style={{ opacity: leftAnswerOpacity }}
+					>
+						<p className={`font-display ${getAnswerFontSize(leftOption.text)} leading-[1.2] text-text text-center`}>
 							{leftOption.text}
 						</p>
 					</motion.div>
 
-					{/* Right option: arrow above, right-justified, anchored to bottom */}
+					{/* Right answer — revealed when dragging right */}
 					<motion.div
-						className="text-right"
-						style={{ opacity: rightTextOpacity }}
+						className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
+						style={{ opacity: rightAnswerOpacity }}
 					>
-						<span
-							className="block text-[28px] font-bold mb-1 leading-none"
-							style={{ color: rightColour }}
-						>
-							→
-						</span>
-						<p className="font-display text-[24px] leading-[1.3] text-text text-right">
+						<p className={`font-display ${getAnswerFontSize(rightOption.text)} leading-[1.2] text-text text-center`}>
 							{rightOption.text}
+						</p>
+					</motion.div>
+
+					{/* Skip text — revealed when dragging down */}
+					<motion.div
+						className="absolute inset-0 flex items-center justify-center px-7 pointer-events-none"
+						style={{ opacity: skipTextOpacity }}
+					>
+						<p className="font-body text-[22px] text-text-muted text-center italic">
+							{skipText}
 						</p>
 					</motion.div>
 				</div>
