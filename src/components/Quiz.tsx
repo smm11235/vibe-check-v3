@@ -6,6 +6,7 @@ import { QuizCard } from '@/components/QuizCard';
 import { ProgressBar } from '@/components/ProgressBar';
 import { SwipeHints } from '@/components/SwipeHints';
 import { EmojiReaction, type ReactionConfig } from '@/components/EmojiReaction';
+import { ArchetypeInfoModal } from '@/components/ArchetypeInfoModal';
 
 // ─── Props ───
 
@@ -30,6 +31,7 @@ export function Quiz({ onComplete }: QuizProps) {
 	const [reactionConfig, setReactionConfig] = useState<ReactionConfig | null>(null);
 	const [reactionTrigger, setReactionTrigger] = useState(0);
 	const [isIdle, setIsIdle] = useState(false);
+	const [showInfo, setShowInfo] = useState(false);
 	const idleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const hasCompletedRef = useRef(false);
 
@@ -150,6 +152,18 @@ export function Quiz({ onComplete }: QuizProps) {
 				questionsAnswered={engine.questionsAnswered}
 				isIdle={isIdle}
 			/>
+
+			{/* Info button */}
+			<button
+				onClick={() => setShowInfo(true)}
+				className="absolute bottom-3 right-3 w-8 h-8 flex items-center justify-center
+					rounded-full bg-surface/60 text-text-muted font-body text-[14px]
+					cursor-pointer active:scale-95 transition-transform"
+			>
+				?
+			</button>
+
+			<ArchetypeInfoModal isOpen={showInfo} onClose={() => setShowInfo(false)} />
 		</motion.div>
 	);
 }

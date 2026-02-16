@@ -280,13 +280,13 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 		return Math.min(Math.max((lx - 15) / 30, 0), 1);
 	});
 
-	/** Skip text: only when dragging down AND vertical is dominant */
+	/** Skip text: only when dragging down AND vertical is dominant. Requires significant movement. */
 	const skipTextOpacity = useTransform([x, y], (latest: number[]) => {
 		const ly = Math.max(latest[1], 0);
 		const absX = Math.abs(latest[0]);
 
 		if (absX >= ly) return 0;
-		return Math.min(Math.max((ly - 20) / 40, 0), 1);
+		return Math.min(Math.max((ly - 80) / 60, 0), 1);
 	});
 
 	/**
