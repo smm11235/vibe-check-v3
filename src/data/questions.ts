@@ -40,6 +40,9 @@ export interface QuestionStem {
   text: string;          // Primary phrasing: "Better flex?"
   variants: string[];    // Alt phrasings: ["Which hits harder?", "More impressive?"]
   pools: string[];       // Pool IDs associated with this stem
+  inverseScoring?: boolean; // If true, NEGATE the selected option's weights before applying.
+                            // Used for "negative" stems (ick, red flag, cringe) where picking
+                            // an option means you DISLIKE that archetype's behavior.
 }
 
 // ─── Helper: weight shorthand ───
@@ -53,6 +56,12 @@ function w(pulse: number, glow: number, cozy: number, lore: number): Record<Arch
 // ═══════════════════════════════════════════════════════════════════
 
 export const QUESTION_STEMS: QuestionStem[] = [
+
+  // ═══════════════════════════════════════════════════════════════
+  // POSITIVE STEMS — "pick the one you prefer / that's more you"
+  // Scoring: apply selected option's weights directly.
+  // ═══════════════════════════════════════════════════════════════
+
   // ── Preference / Taste ──
   {
     id: 'stem_better',
@@ -63,153 +72,185 @@ export const QUESTION_STEMS: QuestionStem[] = [
   {
     id: 'stem_flex',
     text: 'Better flex?',
-    variants: ['Which hits harder?', 'More impressive?'],
+    variants: ['More impressive?'],
     pools: ['pool_flex_life', 'pool_flex_social', 'pool_flex_skills'],
   },
   {
-    id: 'stem_cringe',
-    text: 'More cringe?',
-    variants: ['Ugh:', 'Bigger ick?'],
-    pools: ['pool_cringe_social', 'pool_cringe_dating', 'pool_cringe_online'],
-  },
-  {
-    id: 'stem_red_flag',
-    text: 'Red flag?',
-    variants: ['Dealbreaker?', 'Um, no,'],
-    pools: ['pool_redflag_dating', 'pool_redflag_friendship', 'pool_redflag_vibes'],
-  },
-  {
-    id: 'stem_green_flag',
-    text: 'Green flag?',
-    variants: ['Love to see it,', 'Instant yes?'],
-    pools: ['pool_greenflag_dating', 'pool_greenflag_friendship'],
-  },
-  // ── Hot Takes / Opinion ──
-  {
+    // "Hot take you agree with more" — clear because both options are
+    // opinionated statements, you're endorsing one.
     id: 'stem_hot_take',
     text: 'Hot take!',
-    variants: ['Unpopular opinion:', 'Controversial but:'],
+    variants: ['Unpopular opinion:'],
     pools: ['pool_hottake_life', 'pool_hottake_social', 'pool_hottake_dating', 'pool_hottake_culture', 'pool_hottake_gen', 'pool_hottake_self'],
   },
   {
-    id: 'stem_overrated',
-    text: 'Overrated or underrated?',
-    variants: ['Overhyped?', 'Actually good or nah?'],
-    pools: ['pool_rated_activities', 'pool_rated_trends', 'pool_rated_food'],
+    // Both options are green-flag behaviors. Pick the one you value more.
+    id: 'stem_green_flag',
+    text: 'Love to see it:',
+    variants: ['Green flag:'],
+    pools: ['pool_greenflag_dating', 'pool_greenflag_friendship'],
   },
   {
-    id: 'stem_valid',
-    text: 'Valid or unhinged?',
-    variants: ['Normal or psycho?', 'Reasonable or chaotic?'],
-    pools: ['pool_valid_habits', 'pool_valid_social', 'pool_valid_dating'],
+    // Both options are things that "deserve more credit." Pick the one
+    // YOU think is underrated. Positive framing → direct scoring.
+    id: 'stem_underrated',
+    text: 'Actually underrated:',
+    variants: ['Deserves more love:'],
+    pools: ['pool_rated_activities', 'pool_rated_trends', 'pool_rated_food'],
   },
-  // ── Scenario / "Would You Rather" ──
+
+  // ── Scenario / Choice ──
   {
     id: 'stem_rather',
     text: 'Would you rather...',
-    variants: ['Pick your reality:', 'You have to choose:'],
+    variants: ['You have to choose:'],
     pools: ['pool_rather_social', 'pool_rather_life', 'pool_rather_night', 'pool_superpowers'],
   },
   {
     id: 'stem_friday',
-    text: 'Friday night:',
-    variants: ['It\'s 8pm, you\'re:', 'Weekend mode:'],
+    text: 'Friday night, you\'re:',
+    variants: ['It\'s 8pm:'],
     pools: ['pool_friday_plans', 'pool_friday_energy'],
   },
   {
     id: 'stem_vibe_check',
     text: 'Vibe check:',
-    variants: ['Energy right now:', 'Mood:'],
+    variants: ['Current mood:'],
     pools: ['pool_vibe_moods', 'pool_vibe_aesthetics', 'pool_vibe_seasons'],
-  },
-  // ── Identity / Self ──
-  {
-    id: 'stem_more_you',
-    text: 'More you?',
-    variants: ['Which one are you?', 'Be honest:'],
-    pools: ['pool_you_social', 'pool_you_conflict', 'pool_you_friend', 'pool_you_energy', 'pool_you_mornings'],
-  },
-  {
-    id: 'stem_guilty',
-    text: 'Guilty pleasure?',
-    variants: ['No judgement:', 'Secretly love it?'],
-    pools: ['pool_guilty_media', 'pool_guilty_habits'],
-  },
-  {
-    id: 'stem_toxic_trait',
-    text: 'Your toxic trait?',
-    variants: ['We all have one:', 'Own it:'],
-    pools: ['pool_toxic_social', 'pool_toxic_dating', 'pool_toxic_habits'],
-  },
-  // ── Social / Friendship ──
-  {
-    id: 'stem_friend_group',
-    text: 'In your friend group you\'re:',
-    variants: ['Your role:', 'You\'re the one who:'],
-    pools: ['pool_role_group', 'pool_role_planning', 'pool_role_drama'],
-  },
-  {
-    id: 'stem_group_chat',
-    text: 'In the group chat:',
-    variants: ['Group chat energy:', 'Your DMs say:'],
-    pools: ['pool_gc_behavior', 'pool_gc_content'],
-  },
-  // ── Spicy / Dating ──
-  {
-    id: 'stem_ick',
-    text: 'Instant ick?',
-    variants: ['Turned off by:', 'Nope:'],
-    pools: ['pool_ick_dating', 'pool_ick_social'],
-  },
-  {
-    id: 'stem_rizz',
-    text: 'More rizz?',
-    variants: ['Better move:', 'Smoother:'],
-    pools: ['pool_rizz_moves', 'pool_rizz_energy'],
   },
   {
     id: 'stem_date_night',
     text: 'Ideal date:',
-    variants: ['Take me here:', 'Best date energy:'],
+    variants: ['Take me here:'],
     pools: ['pool_date_plans', 'pool_date_vibes'],
   },
+
+  // ── Identity / Self ──
+  {
+    id: 'stem_more_you',
+    text: 'More you?',
+    variants: ['Be honest:'],
+    pools: ['pool_you_social', 'pool_you_conflict', 'pool_you_friend', 'pool_you_energy', 'pool_you_mornings'],
+  },
+  {
+    // Reframed: "which of these do you secretly do?" — self-identification.
+    id: 'stem_guilty',
+    text: 'Guilty pleasure:',
+    variants: ['No judgement:'],
+    pools: ['pool_guilty_media', 'pool_guilty_habits'],
+  },
+  {
+    // Reframed from "your toxic trait?" to clear self-identification:
+    // "which of these can't you help doing?"
+    id: 'stem_cant_help',
+    text: 'Can\'t help it:',
+    variants: ['You do this:'],
+    pools: ['pool_toxic_social', 'pool_toxic_dating', 'pool_toxic_habits'],
+  },
+  {
+    // "Totally fine" = pick the one YOU think is reasonable.
+    // Self-identification (you defend/do this thing). Direct scoring.
+    id: 'stem_valid',
+    text: 'Totally fine:',
+    variants: ['Nothing wrong with this:'],
+    pools: ['pool_valid_habits', 'pool_valid_social', 'pool_valid_dating'],
+  },
+  {
+    // "Bigger win" = positive pick. Direct scoring.
+    id: 'stem_win',
+    text: 'Bigger W:',
+    variants: ['More of a win:'],
+    pools: ['pool_wl_takes', 'pool_wl_choices', 'pool_wl_habits'],
+  },
+
+  // ── Social / Friendship ──
+  {
+    id: 'stem_friend_group',
+    text: 'In your friend group you\'re:',
+    variants: ['Your role:'],
+    pools: ['pool_role_group', 'pool_role_planning', 'pool_role_drama'],
+  },
+  {
+    id: 'stem_group_chat',
+    text: 'In the group chat you\'re:',
+    variants: ['Group chat energy:'],
+    pools: ['pool_gc_behavior', 'pool_gc_content'],
+  },
+  {
+    // "What has more game" — pick what you think is smoother.
+    // Works as preference (what appeals to you = direct scoring).
+    id: 'stem_rizz',
+    text: 'More rizz:',
+    variants: ['Smoother move:'],
+    pools: ['pool_rizz_moves', 'pool_rizz_energy'],
+  },
+
   // ── Work / Ambition ──
   {
-    id: 'stem_grind',
-    text: 'Grind or chill?',
-    variants: ['Hustle mode:', 'Work ethic:'],
+    // Reframed from "Grind or chill?" — now clearly "pick your style."
+    id: 'stem_work_mode',
+    text: 'More your speed:',
+    variants: ['Your work mode:'],
     pools: ['pool_grind_work', 'pool_grind_goals'],
   },
   {
-    id: 'stem_main_quest',
-    text: 'Main quest or side quest?',
-    variants: ['Priority check:', 'What matters more?'],
+    id: 'stem_priority',
+    text: 'What matters more?',
+    variants: ['Your priority:'],
     pools: ['pool_quest_life', 'pool_quest_goals'],
   },
+
   // ── Culture / Taste ──
   {
     id: 'stem_era',
-    text: 'What era are you in?',
-    variants: ['Current era:', 'Your chapter:'],
+    text: 'Your era right now:',
+    variants: ['Current chapter:'],
     pools: ['pool_era_life', 'pool_era_aesthetic'],
   },
   {
+    // Reframed: "which would you put a dreamy filter on?"
     id: 'stem_romanticize',
-    text: 'Romanticize this:',
-    variants: ['Make it aesthetic:', 'This but beautiful:'],
+    text: 'You\'d romanticize:',
+    variants: ['Make it aesthetic:'],
     pools: ['pool_romanticize_mundane', 'pool_romanticize_chaos'],
   },
   {
     id: 'stem_core',
-    text: 'Your core?',
-    variants: ['___core:', 'Aesthetic:'],
+    text: 'Your vibe:',
+    variants: ['Your aesthetic:'],
     pools: ['pool_core_aesthetic', 'pool_core_lifestyle'],
   },
+
+  // ═══════════════════════════════════════════════════════════════
+  // INVERSE STEMS — "pick the one that bothers you more"
+  // Scoring: NEGATE selected option's weights before applying.
+  // If you find a Glow-coded behavior to be a red flag, you're
+  // probably NOT Glow → subtract those weights from your scores.
+  // ═══════════════════════════════════════════════════════════════
+
   {
-    id: 'stem_ratio',
-    text: 'W or L?',
-    variants: ['Win or loss?', 'Based or cringe?'],
-    pools: ['pool_wl_takes', 'pool_wl_choices', 'pool_wl_habits'],
+    // "Which is worse" — clear, pick the bigger ick. Inverse scoring.
+    id: 'stem_cringe',
+    text: 'Worse look:',
+    variants: ['Cringier:'],
+    pools: ['pool_cringe_social', 'pool_cringe_dating', 'pool_cringe_online'],
+    inverseScoring: true,
+  },
+  {
+    // "Which is a bigger dealbreaker" — clear action, pick the worse one.
+    id: 'stem_red_flag',
+    text: 'Bigger dealbreaker:',
+    variants: ['Worse red flag:'],
+    pools: ['pool_redflag_dating', 'pool_redflag_friendship', 'pool_redflag_vibes'],
+    inverseScoring: true,
+  },
+  {
+    // "Which turns you off more" — clear, pick the bigger turn-off.
+    id: 'stem_ick',
+    text: 'Bigger turn-off:',
+    variants: ['Instant ick:'],
+    pools: ['pool_ick_dating', 'pool_ick_social'],
+    inverseScoring: true,
   },
 ];
 
@@ -605,7 +646,7 @@ export const ANSWER_POOLS: AnswerPool[] = [
   // ────────────────────────────────────────
   {
     id: 'pool_rated_activities',
-    stemId: 'stem_overrated',
+    stemId: 'stem_underrated',
     category: 'nights_out',
     label: 'Activities rated',
     options: [
@@ -623,7 +664,7 @@ export const ANSWER_POOLS: AnswerPool[] = [
   // ────────────────────────────────────────
   {
     id: 'pool_rated_trends',
-    stemId: 'stem_overrated',
+    stemId: 'stem_underrated',
     category: 'tiktok_genz',
     label: 'Trends rated',
     options: [
@@ -640,7 +681,7 @@ export const ANSWER_POOLS: AnswerPool[] = [
   // ────────────────────────────────────────
   {
     id: 'pool_rated_food',
-    stemId: 'stem_overrated',
+    stemId: 'stem_underrated',
     category: 'worldviews',
     label: 'Food rated',
     options: [
@@ -949,7 +990,7 @@ export const ANSWER_POOLS: AnswerPool[] = [
   // ────────────────────────────────────────
   {
     id: 'pool_toxic_social',
-    stemId: 'stem_toxic_trait',
+    stemId: 'stem_cant_help',
     category: 'friendships',
     label: 'Social toxic traits',
     options: [
@@ -966,7 +1007,7 @@ export const ANSWER_POOLS: AnswerPool[] = [
   // ────────────────────────────────────────
   {
     id: 'pool_toxic_dating',
-    stemId: 'stem_toxic_trait',
+    stemId: 'stem_cant_help',
     category: 'spicy',
     label: 'Dating toxic traits',
     options: [
@@ -983,7 +1024,7 @@ export const ANSWER_POOLS: AnswerPool[] = [
   // ────────────────────────────────────────
   {
     id: 'pool_toxic_habits',
-    stemId: 'stem_toxic_trait',
+    stemId: 'stem_cant_help',
     category: 'humor',
     label: 'Habit toxic traits',
     options: [
@@ -1178,7 +1219,7 @@ export const ANSWER_POOLS: AnswerPool[] = [
   // ────────────────────────────────────────
   {
     id: 'pool_grind_work',
-    stemId: 'stem_grind',
+    stemId: 'stem_work_mode',
     category: 'work_school',
     label: 'Work style',
     options: [
@@ -1194,7 +1235,7 @@ export const ANSWER_POOLS: AnswerPool[] = [
   // ────────────────────────────────────────
   {
     id: 'pool_grind_goals',
-    stemId: 'stem_grind',
+    stemId: 'stem_work_mode',
     category: 'exercise_selfcare',
     label: 'Goal style',
     options: [
@@ -1210,7 +1251,7 @@ export const ANSWER_POOLS: AnswerPool[] = [
   // ────────────────────────────────────────
   {
     id: 'pool_quest_life',
-    stemId: 'stem_main_quest',
+    stemId: 'stem_priority',
     category: 'worldviews',
     label: 'Life priorities',
     options: [
@@ -1226,7 +1267,7 @@ export const ANSWER_POOLS: AnswerPool[] = [
   // ────────────────────────────────────────
   {
     id: 'pool_quest_goals',
-    stemId: 'stem_main_quest',
+    stemId: 'stem_priority',
     category: 'work_school',
     label: 'Goals',
     options: [
@@ -1340,7 +1381,7 @@ export const ANSWER_POOLS: AnswerPool[] = [
   // ────────────────────────────────────────
   {
     id: 'pool_wl_takes',
-    stemId: 'stem_ratio',
+    stemId: 'stem_win',
     category: 'spicy',
     label: 'Takes: W or L?',
     options: [
@@ -1356,7 +1397,7 @@ export const ANSWER_POOLS: AnswerPool[] = [
   // ────────────────────────────────────────
   {
     id: 'pool_wl_choices',
-    stemId: 'stem_ratio',
+    stemId: 'stem_win',
     category: 'humor',
     label: 'Choices: W or L?',
     options: [
@@ -1372,7 +1413,7 @@ export const ANSWER_POOLS: AnswerPool[] = [
   // ────────────────────────────────────────
   {
     id: 'pool_wl_habits',
-    stemId: 'stem_ratio',
+    stemId: 'stem_win',
     category: 'humor',
     label: 'Habits: W or L?',
     options: [

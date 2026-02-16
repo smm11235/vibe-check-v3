@@ -30,8 +30,9 @@ This document describes a new question content architecture that replaces the or
 interface QuestionStem {
   id: string;          // "stem_hot_take"
   text: string;        // "Hot take!"
-  variants: string[];  // ["Unpopular opinion:", "Controversial but:"]
+  variants: string[];  // ["Unpopular opinion:"]
   pools: string[];     // ["pool_hottake_life", "pool_hottake_social", ...]
+  inverseScoring?: boolean; // If true, negate weights before applying (for "negative" stems)
 }
 
 interface AnswerPool {
@@ -89,14 +90,19 @@ applyAnswer(scores, selectedArchetype, otherArchetype)
 ### New scoring (proposed)
 Each selected option applies its full weight vector:
 ```
-applyWeightedAnswer(scores, selectedOption.weights)
+applyWeightedAnswer(scores, selectedOption.weights, stem.inverseScoring)
+  if inverseScoring:
+    → multiply all weights by -1 before applying
   → pulse: scores.pulse += weights.pulse
   → glow:  scores.glow  += weights.glow
   → cozy:  scores.cozy  += weights.cozy
   → lore:  scores.lore  += weights.lore
 ```
 
-The non-selected option's weights could optionally apply a small inverse signal (e.g., -0.25x of each weight), but this is a tuning decision. Start simple: only apply the selected option's weights.
+#### Inverse scoring (3 stems)
+Stems like "Bigger dealbreaker:", "Worse look:", and "Bigger turn-off:" have `inverseScoring: true`. The weights on their options describe **what archetype does this behavior** (e.g., "Making everything a competition" has high Glow weight). When the user picks this as their bigger turn-off, they're signaling they're NOT that archetype — so we negate the weights before applying.
+
+The non-selected option's weights could optionally apply a small inverse signal (e.g., -0.25x of each weight), but this is a tuning decision. Start simple: only apply the selected option's weights (negated for inverse stems).
 
 **Key difference:** Instead of +1.0 to one archetype and +0.25 to another, each answer nudges all four scores simultaneously. This is richer signal per question, so we likely need **fewer questions total** to converge on a result.
 

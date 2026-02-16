@@ -370,8 +370,9 @@ See `docs/content-experiment.md` for full architecture description, data structu
    - Alternatively, the types are already exported from `stems-and-pools.ts` and can be imported directly
 
 2. Add weighted scoring to `src/engine/scoring.ts`:
-   - New function: `applyWeightedAnswer(scores: Scores, weights: Record<ArchetypeId, number>): Scores`
+   - New function: `applyWeightedAnswer(scores: Scores, weights: Record<ArchetypeId, number>, inverse?: boolean): Scores`
    - Applies the full weight vector from the selected option to scores
+   - If `inverse` is true (from `stem.inverseScoring`), negate all weights before applying — used for "negative" stems (cringe, red flag, ick) where picking an option means you dislike that archetype's behavior
    - Keep existing `applyAnswer()` for fallback/old system compatibility
 
 3. Build stem+pool selection engine (`src/engine/pool-selection.ts` — new file):

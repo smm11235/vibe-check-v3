@@ -256,7 +256,13 @@ function handlePoolAnswer(
 	const question = state.currentQuestion as PoolQuestion;
 	const selected = side === 'left' ? question.optionA : question.optionB;
 
-	const newScores = applyWeightedAnswer(state.scores, selected.weights);
+	// Inverse-scored stems (cringe/ick/red flag): negate weights since picking
+	// an option means you DISLIKE that archetype's behaviour
+	const weights = question.inverseScoring
+		? { pulse: -selected.weights.pulse, glow: -selected.weights.glow, cozy: -selected.weights.cozy, lore: -selected.weights.lore }
+		: selected.weights;
+
+	const newScores = applyWeightedAnswer(state.scores, weights);
 	const newAnswered = state.questionsAnswered + 1;
 
 	// Check termination

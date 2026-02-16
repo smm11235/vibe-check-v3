@@ -96,6 +96,7 @@ export interface PoolQuestion {
   text: string;             // Stem text (or variant)
   optionA: PoolQuestionOption;
   optionB: PoolQuestionOption;
+  inverseScoring?: boolean; // If true, negate selected option's weights (for "cringe"/"ick" stems)
 }
 
 export type AnyQuestion = BaseQuestion | ComboQuestion | MirrorQuestion | PoolQuestion;

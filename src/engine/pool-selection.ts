@@ -108,6 +108,7 @@ export function selectPoolQuestion(session: PoolSessionState): PoolSelectionResu
 		text: stemText,
 		optionA: toPoolOption(optA),
 		optionB: toPoolOption(optB),
+		...(stem.inverseScoring ? { inverseScoring: true } : {}),
 	};
 
 	return {
