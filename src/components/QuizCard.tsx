@@ -456,6 +456,18 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 			transition={{ type: 'spring', stiffness: 300, damping: 25 }}
 			whileDrag={{ scale: 1.02 }}
 		>
+			{/* Gradient border — blends left/right archetype colours */}
+			<div
+				className="absolute inset-0 rounded-xl pointer-events-none"
+				style={{
+					border: '1.5px solid transparent',
+					background: `linear-gradient(to right, ${leftColour}50, ${rightColour}50) border-box`,
+					WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
+					WebkitMaskComposite: 'xor',
+					maskComposite: 'exclude',
+				}}
+			/>
+
 			{/* Left glow (drag-left feedback) */}
 			<motion.div
 				className="absolute inset-y-0 left-0 w-16 rounded-l-xl pointer-events-none"
