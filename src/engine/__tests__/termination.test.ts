@@ -69,37 +69,42 @@ describe('termination', () => {
 			expect(shouldEndPhase2(scores, 'pulse', 5)).toBe(true);
 		});
 
-		it('ends when secondary separates from 3rd by ≥1.0', () => {
+		it('does not end before 3 answered even with clear secondary', () => {
 			// Primary is pulse. Among non-primary: glow(5), cozy(3), lore(1) → gap = 2
 			const scores = { pulse: 8, glow: 5, cozy: 3, lore: 1 };
-			expect(shouldEndPhase2(scores, 'pulse', 2)).toBe(true);
+			expect(shouldEndPhase2(scores, 'pulse', 2)).toBe(false);
+		});
+
+		it('ends when secondary separates from 3rd by ≥1.0 after 3+ answered', () => {
+			const scores = { pulse: 8, glow: 5, cozy: 3, lore: 1 };
+			expect(shouldEndPhase2(scores, 'pulse', 3)).toBe(true);
 		});
 
 		it('does not end when secondary is still ambiguous', () => {
 			// Among non-primary: glow(4), cozy(3.5), lore(1) → gap = 0.5
 			const scores = { pulse: 8, glow: 4, cozy: 3.5, lore: 1 };
-			expect(shouldEndPhase2(scores, 'pulse', 2)).toBe(false);
+			expect(shouldEndPhase2(scores, 'pulse', 3)).toBe(false);
 		});
 	});
 
 	describe('needsMirrorResolution', () => {
-		it('returns true when primary-secondary gap < 1.5', () => {
-			const scores = { pulse: 5, glow: 4, cozy: 2, lore: 1 };
+		it('returns true when primary-secondary gap < 2.5', () => {
+			const scores = { pulse: 5, glow: 3, cozy: 2, lore: 1 };
 			expect(needsMirrorResolution(scores)).toBe(true);
 		});
 
-		it('returns false when gap ≥ 1.5', () => {
-			const scores = { pulse: 5, glow: 3.5, cozy: 2, lore: 1 };
+		it('returns false when gap ≥ 2.5', () => {
+			const scores = { pulse: 5, glow: 2.5, cozy: 2, lore: 1 };
 			expect(needsMirrorResolution(scores)).toBe(false);
 		});
 
-		it('returns true when gap is exactly 1.0', () => {
-			const scores = { pulse: 5, glow: 4, cozy: 2, lore: 1 };
+		it('returns true when gap is exactly 2.0', () => {
+			const scores = { pulse: 5, glow: 3, cozy: 2, lore: 1 };
 			expect(needsMirrorResolution(scores)).toBe(true);
 		});
 
-		it('returns false when gap is exactly 1.5', () => {
-			const scores = { pulse: 5, glow: 3.5, cozy: 2, lore: 1 };
+		it('returns false when gap is exactly 2.5', () => {
+			const scores = { pulse: 5, glow: 2.5, cozy: 2, lore: 1 };
 			expect(needsMirrorResolution(scores)).toBe(false);
 		});
 	});
@@ -110,9 +115,14 @@ describe('termination', () => {
 			expect(shouldEndPhase3(ms, 5)).toBe(true);
 		});
 
-		it('ends when one direction leads by ≥1', () => {
+		it('does not end before 2 answered even with clear lead', () => {
+			const ms: MirrorScore = { asIs: 1, flipped: 0 };
+			expect(shouldEndPhase3(ms, 1)).toBe(false);
+		});
+
+		it('ends when one direction leads by ≥1 after 2+ answered', () => {
 			const ms: MirrorScore = { asIs: 2, flipped: 1 };
-			expect(shouldEndPhase3(ms, 3)).toBe(true);
+			expect(shouldEndPhase3(ms, 2)).toBe(true);
 		});
 
 		it('does not end on tie with questions remaining', () => {

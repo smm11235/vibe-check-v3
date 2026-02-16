@@ -7,7 +7,9 @@ const MIN_ANSWERED_PHASE1 = 10;
 const MIN_QUESTIONS_STRONG_SIGNAL = 12;
 const MIN_QUESTIONS_MODERATE = 18;
 const MAX_QUESTIONS_PHASE1 = 25;
+const MIN_ANSWERED_PHASE2 = 3;
 const MAX_QUESTIONS_PHASE2 = 5;
+const MIN_ANSWERED_PHASE3 = 2;
 const MAX_QUESTIONS_PHASE3 = 5;
 
 // ─── Phase 1 Termination ───
@@ -79,7 +81,7 @@ export function shouldEndPhase1(
 /**
  * Determine whether Phase 2 should end.
  * Ends when:
- * 1. Secondary leads 3rd-place by ≥1.0
+ * 1. At least 3 answered AND secondary leads 3rd-place by ≥1.0
  * 2. 5 questions asked
  * 3. All relevant questions exhausted (handled by selection returning null)
  */
@@ -90,6 +92,11 @@ export function shouldEndPhase2(
 ): boolean {
 	if (phase2Answered >= MAX_QUESTIONS_PHASE2) {
 		return true;
+	}
+
+	// Require minimum answered before allowing early termination
+	if (phase2Answered < MIN_ANSWERED_PHASE2) {
+		return false;
 	}
 
 	// Check if secondary has separated from 3rd place
@@ -104,18 +111,20 @@ export function shouldEndPhase2(
 
 /**
  * Check if mirror resolution (Phase 3) is needed.
- * Required when primary-secondary gap is < 1.5 — the order is uncertain.
+ * Required when primary-secondary gap is < 2.5 — the order is uncertain enough
+ * to warrant a few mirror questions. This triggers for most sessions,
+ * ensuring the progress bar doesn't jump straight from ~80% to 100%.
  */
 export function needsMirrorResolution(scores: Scores): boolean {
 	const board = getLeaderboard(scores);
 	const gap = board[0].score - board[1].score;
-	return gap < 1.5;
+	return gap < 2.5;
 }
 
 /**
  * Determine whether Phase 3 should end.
  * Ends when:
- * 1. One direction has a clear lead (gap ≥ 1)
+ * 1. At least 2 answered AND one direction has a clear lead (gap ≥ 1)
  * 2. 5 questions asked
  *
  * On tie after all questions: keep current assignment (asIs wins by default).
@@ -126,6 +135,11 @@ export function shouldEndPhase3(
 ): boolean {
 	if (phase3Answered >= MAX_QUESTIONS_PHASE3) {
 		return true;
+	}
+
+	// Require minimum answered before allowing early termination
+	if (phase3Answered < MIN_ANSWERED_PHASE3) {
+		return false;
 	}
 
 	const gap = Math.abs(mirrorScore.asIs - mirrorScore.flipped);
