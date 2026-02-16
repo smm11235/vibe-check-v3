@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { ArchetypeInfoModal } from '@/components/ArchetypeInfoModal';
 
 interface LandingProps {
 	onStart: () => void;
@@ -9,6 +11,8 @@ interface LandingProps {
  * Combines the original landing and tutorial into a single screen.
  */
 export function Landing({ onStart }: LandingProps) {
+	const [showInfo, setShowInfo] = useState(false);
+
 	return (
 		<motion.div
 			className="flex-1 flex flex-col items-center justify-center px-5 text-center relative"
@@ -21,9 +25,16 @@ export function Landing({ onStart }: LandingProps) {
 				Vibe Check
 			</h1>
 
-			<p className="font-body text-[19px] leading-[1.4] text-text-secondary max-w-[320px] mb-8">
+			<p className="font-body text-[19px] leading-[1.4] text-text-secondary max-w-[320px] mb-4">
 				Swipe your way through questions to discover your combo type - the unique mix of vibes that makes you, you. All in 5 minutes or less!
 			</p>
+
+			<button
+				onClick={() => setShowInfo(true)}
+				className="font-body text-[16px] text-accent cursor-pointer mb-8"
+			>
+				What are Vibes?
+			</button>
 
 			{/* Swipe instructions */}
 			<div className="flex flex-col gap-4 mb-6 max-w-[300px]">
@@ -63,6 +74,8 @@ export function Landing({ onStart }: LandingProps) {
 			<p className="absolute bottom-4 text-text-muted text-[11px] opacity-50">
 				{__APP_VERSION__}
 			</p>
+
+			<ArchetypeInfoModal isOpen={showInfo} onClose={() => setShowInfo(false)} />
 		</motion.div>
 	);
 }

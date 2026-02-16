@@ -1,4 +1,5 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { useRef, useCallback } from 'react';
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
 import { ARCHETYPES, COMBO_TYPES } from '@/data/archetypes';
 import type { ArchetypeId, ComboTypeId } from '@/data/types';
 
@@ -20,13 +21,46 @@ const COMBO_ORDER: ComboTypeId[] = [
 	'lore_pulse', 'lore_glow', 'lore_cozy',
 ];
 
+/** How far down the handle must be dragged to dismiss (px) */
+const DISMISS_THRESHOLD = 80;
+
 // ─── Component ───
 
 /**
  * Info modal explaining the 4 core vibes and 12 combo types.
- * Triggered by the (?) button during the quiz.
+ * Bottom sheet with pull-to-dismiss via the drag handle.
+ * Content scrolls normally; only the handle triggers dismiss.
  */
 export function ArchetypeInfoModal({ isOpen, onClose }: ArchetypeInfoModalProps) {
+	const sheetY = useMotionValue(0);
+	const startYRef = useRef(0);
+	const isDraggingRef = useRef(false);
+	const backdropOpacity = useTransform(sheetY, [0, 300], [1, 0.2]);
+
+	const handleTouchStart = useCallback((e: React.TouchEvent) => {
+		startYRef.current = e.touches[0].clientY;
+		isDraggingRef.current = true;
+	}, []);
+
+	const handleTouchMove = useCallback((e: React.TouchEvent) => {
+		if (!isDraggingRef.current) return;
+		const deltaY = e.touches[0].clientY - startYRef.current;
+		// Only allow dragging downward (positive delta)
+		sheetY.set(Math.max(0, deltaY));
+	}, [sheetY]);
+
+	const handleTouchEnd = useCallback(() => {
+		if (!isDraggingRef.current) return;
+		isDraggingRef.current = false;
+		const currentY = sheetY.get();
+
+		if (currentY > DISMISS_THRESHOLD) {
+			animate(sheetY, window.innerHeight, { duration: 0.25, ease: 'easeIn' }).then(onClose);
+		} else {
+			animate(sheetY, 0, { type: 'spring', stiffness: 400, damping: 30 });
+		}
+	}, [sheetY, onClose]);
+
 	return (
 		<AnimatePresence>
 			{isOpen && (
@@ -40,23 +74,31 @@ export function ArchetypeInfoModal({ isOpen, onClose }: ArchetypeInfoModalProps)
 					{/* Backdrop */}
 					<motion.div
 						className="absolute inset-0 bg-black/60"
+						style={{ opacity: backdropOpacity }}
 						onClick={onClose}
 					/>
 
 					{/* Sheet */}
 					<motion.div
-						className="relative w-full max-w-[393px] max-h-[85vh] bg-surface rounded-t-2xl overflow-y-auto"
+						className="relative w-full max-w-[393px] max-h-[85vh] bg-surface rounded-t-2xl flex flex-col"
+						style={{ y: sheetY }}
 						initial={{ y: '100%' }}
 						animate={{ y: 0 }}
 						exit={{ y: '100%' }}
 						transition={{ type: 'spring', stiffness: 300, damping: 30 }}
 					>
-						{/* Drag handle */}
-						<div className="sticky top-0 bg-surface pt-3 pb-2 flex justify-center z-10">
+						{/* Drag handle — touch here to pull down to dismiss */}
+						<div
+							className="pt-3 pb-3 flex justify-center shrink-0 cursor-grab active:cursor-grabbing"
+							onTouchStart={handleTouchStart}
+							onTouchMove={handleTouchMove}
+							onTouchEnd={handleTouchEnd}
+						>
 							<div className="w-10 h-1 rounded-full bg-text-muted/40" />
 						</div>
 
-						<div className="px-5 pb-8 space-y-6">
+						{/* Scrollable content (native scroll, unaffected by drag) */}
+						<div className="overflow-y-auto flex-1 px-5 pb-8 space-y-6">
 							{/* Header */}
 							<div>
 								<h2 className="font-display text-[28px] text-text">The 4 Vibes</h2>
