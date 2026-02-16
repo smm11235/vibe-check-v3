@@ -49,7 +49,7 @@ export interface PoolSelectionResult {
 	question: PoolQuestion;
 	poolId: string;
 	stemId: string;
-	optionIds: [string, string];
+	optionIds: string[];
 }
 
 /**
@@ -88,11 +88,12 @@ export function selectPoolQuestion(session: PoolSessionState): PoolSelectionResu
 	const pool = POOL_INDEX.get(poolId);
 	if (!pool) return null;
 
-	// Pick 2 options with different primary archetypes
-	const pair = pickTwoOptions(pool.options, session.shownOptionIds);
+	// Try to pick 3 options with different primary archetypes first, fall back to 2
+	const triple = pickThreeOptions(pool.options, session.shownOptionIds);
+	const pair = triple ?? pickTwoOptions(pool.options, session.shownOptionIds);
 	if (!pair) return null;
 
-	const [optA, optB] = pair;
+	const [optA, optB, optC] = pair;
 
 	// Stem text: use variant if stem has been used before
 	const useCount = session.stemUseCount[stem.id] ?? 0;
@@ -108,15 +109,61 @@ export function selectPoolQuestion(session: PoolSessionState): PoolSelectionResu
 		text: stemText,
 		optionA: toPoolOption(optA),
 		optionB: toPoolOption(optB),
+		...(optC ? { optionC: toPoolOption(optC) } : {}),
 		...(stem.inverseScoring ? { inverseScoring: true } : {}),
 	};
+
+	const optionIds = optC ? [optA.id, optB.id, optC.id] : [optA.id, optB.id];
 
 	return {
 		question,
 		poolId,
 		stemId: stem.id,
-		optionIds: [optA.id, optB.id],
+		optionIds,
 	};
+}
+
+/**
+ * Pick 3 options from a pool that have different primary archetypes.
+ * Requires at least 3 distinct archetype groups. Returns null if not possible.
+ */
+export function pickThreeOptions(
+	options: AnswerOption[],
+	shownIds: Set<string>,
+): [AnswerOption, AnswerOption, AnswerOption] | null {
+	if (options.length < 3) return null;
+
+	// Group options by primary archetype
+	const byArchetype = new Map<ArchetypeId, AnswerOption[]>();
+	for (const opt of options) {
+		const primary = getPrimaryArchetype(opt.weights);
+		const list = byArchetype.get(primary) ?? [];
+		list.push(opt);
+		byArchetype.set(primary, list);
+	}
+
+	// Need at least 3 distinct primary archetypes
+	const archetypeGroups = [...byArchetype.entries()];
+	if (archetypeGroups.length < 3) return null;
+
+	// Sort: prefer groups with more unshown options
+	archetypeGroups.sort((a, b) => {
+		const aUnshown = a[1].filter((o) => !shownIds.has(o.id)).length;
+		const bUnshown = b[1].filter((o) => !shownIds.has(o.id)).length;
+		return bUnshown - aUnshown;
+	});
+
+	const pickFrom = (group: AnswerOption[]): AnswerOption => {
+		const unshown = group.filter((o) => !shownIds.has(o.id));
+		const candidates = unshown.length > 0 ? unshown : group;
+		return candidates[Math.floor(Math.random() * candidates.length)];
+	};
+
+	return [
+		pickFrom(archetypeGroups[0][1]),
+		pickFrom(archetypeGroups[1][1]),
+		pickFrom(archetypeGroups[2][1]),
+	];
 }
 
 /**
@@ -171,14 +218,15 @@ export function updatePoolSession(
 	session: PoolSessionState,
 	poolId: string,
 	stemId: string,
-	optionIds: [string, string],
+	optionIds: string[],
 ): PoolSessionState {
 	const usedPools = new Set(session.usedPools);
 	usedPools.add(poolId);
 
 	const shownOptionIds = new Set(session.shownOptionIds);
-	shownOptionIds.add(optionIds[0]);
-	shownOptionIds.add(optionIds[1]);
+	for (const id of optionIds) {
+		shownOptionIds.add(id);
+	}
 
 	return {
 		usedPools,

@@ -41,7 +41,7 @@ interface EngineState {
 // ─── Actions ───
 
 type EngineAction =
-	| { type: 'ANSWER'; side: 'left' | 'right' }
+	| { type: 'ANSWER'; side: 'left' | 'right' | 'up' }
 	| { type: 'SKIP' };
 
 // ─── Type Guards ───
@@ -80,9 +80,17 @@ function quizReducer(state: EngineState, action: EngineAction): EngineState {
 	return handleAnswer(state, action.side);
 }
 
-function handleAnswer(state: EngineState, side: 'left' | 'right'): EngineState {
+function handleAnswer(state: EngineState, side: 'left' | 'right' | 'up'): EngineState {
 	const question = state.currentQuestion as PoolQuestion;
-	const selected = side === 'left' ? question.optionA : question.optionB;
+
+	// Map 'up' → optionC; if no optionC, treat as skip
+	if (side === 'up') {
+		if (!question.optionC) return handleSkip(state);
+	}
+
+	const selected = side === 'left' ? question.optionA
+		: side === 'right' ? question.optionB
+		: question.optionC!;
 
 	// Inverse-scored stems (cringe/ick/red flag): negate weights since picking
 	// an option means you DISLIKE that archetype's behaviour
@@ -209,14 +217,14 @@ export interface QuizEngine {
 	result: QuizResult | null;
 	questionsAnswered: number;
 	scores: Scores;
-	answer: (side: 'left' | 'right') => void;
+	answer: (side: 'left' | 'right' | 'up') => void;
 	skip: () => void;
 }
 
 export function useQuizEngine(): QuizEngine {
 	const [state, dispatch] = useReducer(quizReducer, null, createInitialState);
 
-	const answer = useCallback((side: 'left' | 'right') => {
+	const answer = useCallback((side: 'left' | 'right' | 'up') => {
 		dispatch({ type: 'ANSWER', side });
 	}, []);
 

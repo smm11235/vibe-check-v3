@@ -44,6 +44,12 @@ export function Landing({ onStart }: LandingProps) {
 					</p>
 				</div>
 				<div className="flex items-center gap-4">
+					<span className="text-[28px]">👆</span>
+					<p className="font-body text-[18px] text-text-secondary text-left">
+						Swipe up for the third option
+					</p>
+				</div>
+				<div className="flex items-center gap-4">
 					<span className="text-[28px]">👇</span>
 					<p className="font-body text-[18px] text-text-secondary text-left">
 						Swipe down to skip (but try not to!)

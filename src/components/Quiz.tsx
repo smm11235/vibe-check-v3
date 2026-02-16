@@ -70,14 +70,23 @@ export function Quiz({ onComplete }: QuizProps) {
 	 * Fires immediately when the card starts its exit animation.
 	 * Triggers archetype emoji reactions before the engine state changes.
 	 */
-	function handleExitStart(side: 'left' | 'right' | 'up') {
+	function handleExitStart(side: 'left' | 'right' | 'up' | 'skip') {
 		const question = engine.currentQuestion;
-		if (!question || side === 'up') return;
+		if (!question || side === 'skip') return;
 
 		// Pool questions have archetype on each option
 		if (isPoolQuestion(question)) {
-			const selected = side === 'left' ? question.optionA : question.optionB;
-			const other = side === 'left' ? question.optionB : question.optionA;
+			const selected = side === 'left' ? question.optionA
+				: side === 'right' ? question.optionB
+				: question.optionC;
+			if (!selected) return;
+
+			// Pick a contrasting archetype for the partial reaction
+			const others = [question.optionA, question.optionB, question.optionC].filter(
+				(o) => o && o !== selected,
+			);
+			const other = others[0];
+			if (!other) return;
 
 			setReactionConfig({
 				boostedArchetype: selected.archetype,
@@ -88,8 +97,8 @@ export function Quiz({ onComplete }: QuizProps) {
 			return;
 		}
 
-		// Base and combo questions have archetype info on their options
-		if (isBaseQuestion(question) || isComboQuestion(question)) {
+		// Base and combo questions have archetype info on their options (no 'up' side)
+		if (side !== 'up' && (isBaseQuestion(question) || isComboQuestion(question))) {
 			const selected = side === 'left' ? question.optionA : question.optionB;
 			const other = side === 'left' ? question.optionB : question.optionA;
 
@@ -104,7 +113,7 @@ export function Quiz({ onComplete }: QuizProps) {
 	}
 
 	/** Fires after the card exit animation completes — advances the engine */
-	function handleAnswer(side: 'left' | 'right') {
+	function handleAnswer(side: 'left' | 'right' | 'up') {
 		engine.answer(side);
 		resetIdleTimer();
 	}

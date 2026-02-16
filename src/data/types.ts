@@ -96,6 +96,7 @@ export interface PoolQuestion {
   text: string;             // Stem text (or variant)
   optionA: PoolQuestionOption;
   optionB: PoolQuestionOption;
+  optionC?: PoolQuestionOption; // Optional third choice (up-swipe)
   inverseScoring?: boolean; // If true, negate selected option's weights (for "cringe"/"ick" stems)
 }
 
