@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { motion, useMotionValue, useTransform, animate, type PanInfo } from 'framer-motion';
 import type { AnyQuestion } from '@/data/types';
-import { isBaseQuestion, isComboQuestion } from '@/hooks/useQuizEngine';
+import { isBaseQuestion, isComboQuestion, isPoolQuestion } from '@/hooks/useQuizEngine';
 
 // ─── Constants ───
 
@@ -95,6 +95,11 @@ function getSkipText(questionId: string): string {
 
 /** Get the archetype colour for an option, falling back to accent */
 function getOptionColour(question: AnyQuestion, engineSide: 'left' | 'right'): string {
+	// Pool questions have archetype directly on each option
+	if (isPoolQuestion(question)) {
+		const poolOpt = engineSide === 'left' ? question.optionA : question.optionB;
+		return ARCHETYPE_COLOURS[poolOpt.archetype] ?? 'var(--color-accent)';
+	}
 	const option = engineSide === 'left' ? question.optionA : question.optionB;
 	if ((isBaseQuestion(question) || isComboQuestion(question)) && 'archetype' in option) {
 		return ARCHETYPE_COLOURS[(option as { archetype: string }).archetype] ?? 'var(--color-accent)';

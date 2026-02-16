@@ -5,6 +5,7 @@ import type {
 	BaseQuestion,
 	ComboQuestion,
 	MirrorQuestion,
+	PoolQuestion,
 	MirrorDirection,
 	Scores,
 	MirrorScore,
@@ -15,9 +16,11 @@ import {
 	initScores,
 	initMirrorScore,
 	applyAnswer,
+	applyWeightedAnswer,
 	applyMirrorAnswer,
 	getPrimarySecondary,
 	buildResult,
+	buildPoolResult,
 } from '@/engine/scoring';
 import {
 	selectPhase1Question,
@@ -29,8 +32,19 @@ import {
 	shouldEndPhase2,
 	needsMirrorResolution,
 	shouldEndPhase3,
+	shouldEndPoolQuiz,
 } from '@/engine/termination';
-import { calculateProgress } from '@/engine/progress';
+import { calculateProgress, calculatePoolProgress } from '@/engine/progress';
+import {
+	type PoolSessionState,
+	initPoolSession,
+	selectPoolQuestion,
+	updatePoolSession,
+} from '@/engine/pool-selection';
+
+// ─── Feature Flag ───
+
+const USE_STEM_POOL = true;
 
 // ─── Internal Phase (separate from app-level Phase type) ───
 
@@ -53,6 +67,10 @@ interface EngineState {
 	currentQuestion: AnyQuestion | null;
 	nextQuestion: AnyQuestion | null;
 	result: QuizResult | null;
+	/** Pool system session tracking (only used when USE_STEM_POOL is true) */
+	poolSession: PoolSessionState | null;
+	/** Whether this engine uses the pool system */
+	usePoolSystem: boolean;
 }
 
 // ─── Actions ───
@@ -76,6 +94,11 @@ function isComboQuestion(q: AnyQuestion): q is ComboQuestion {
 /** Type guard for mirror questions */
 function isMirrorQuestion(q: AnyQuestion): q is MirrorQuestion {
 	return 'mirrorPair' in q;
+}
+
+/** Type guard for pool questions */
+function isPoolQuestion(q: AnyQuestion): q is PoolQuestion {
+	return !('pair' in q) && !('matchup' in q) && !('mirrorPair' in q) && 'optionA' in q && 'weights' in (q as PoolQuestion).optionA;
 }
 
 /**
@@ -207,12 +230,141 @@ function transitionToComplete(state: EngineState): EngineState {
 	};
 }
 
+// ─── Pool System Reducer ───
+
+/**
+ * Handle ANSWER and SKIP for the pool (stem+pool) quiz system.
+ * Single-phase: weighted scoring, terminate when clear leader or max questions.
+ */
+function poolReducer(state: EngineState, action: EngineAction): EngineState {
+	const { currentQuestion, poolSession } = state;
+	if (!currentQuestion || !poolSession) return state;
+
+	if (action.type === 'SKIP') {
+		return handlePoolSkip(state, poolSession);
+	}
+
+	// ANSWER — apply weighted scoring from the selected option
+	return handlePoolAnswer(state, action.side, poolSession);
+}
+
+function handlePoolAnswer(
+	state: EngineState,
+	side: 'left' | 'right',
+	session: PoolSessionState,
+): EngineState {
+	const question = state.currentQuestion as PoolQuestion;
+	const selected = side === 'left' ? question.optionA : question.optionB;
+
+	const newScores = applyWeightedAnswer(state.scores, selected.weights);
+	const newAnswered = state.questionsAnswered + 1;
+
+	// Check termination
+	if (shouldEndPoolQuiz(newScores, newAnswered)) {
+		const result = buildPoolResult(newScores, newAnswered, state.questionsSkipped);
+		return {
+			...state,
+			scores: newScores,
+			questionsAnswered: newAnswered,
+			internalPhase: 'complete',
+			currentQuestion: null,
+			nextQuestion: null,
+			result,
+			displayedProgress: 1.0,
+			poolSession: session,
+		};
+	}
+
+	// Select next question
+	const nextResult = selectPoolQuestion(session);
+	if (!nextResult) {
+		// Pool exhausted — end with current scores
+		const result = buildPoolResult(newScores, newAnswered, state.questionsSkipped);
+		return {
+			...state,
+			scores: newScores,
+			questionsAnswered: newAnswered,
+			internalPhase: 'complete',
+			currentQuestion: null,
+			nextQuestion: null,
+			result,
+			displayedProgress: 1.0,
+			poolSession: session,
+		};
+	}
+
+	const updatedSession = updatePoolSession(
+		session,
+		nextResult.poolId,
+		nextResult.stemId,
+		nextResult.optionIds,
+	);
+
+	// Pre-select the question after next for the card stack
+	const peekResult = selectPoolQuestion(updatedSession);
+
+	return updateProgress({
+		...state,
+		scores: newScores,
+		questionsAnswered: newAnswered,
+		currentQuestion: nextResult.question,
+		nextQuestion: peekResult?.question ?? null,
+		poolSession: updatedSession,
+	});
+}
+
+function handlePoolSkip(
+	state: EngineState,
+	session: PoolSessionState,
+): EngineState {
+	const newSkipped = state.questionsSkipped + 1;
+
+	// Select next question (no score change)
+	const nextResult = selectPoolQuestion(session);
+	if (!nextResult) {
+		// Pool exhausted — end with current scores
+		const result = buildPoolResult(state.scores, state.questionsAnswered, newSkipped);
+		return {
+			...state,
+			questionsSkipped: newSkipped,
+			internalPhase: 'complete',
+			currentQuestion: null,
+			nextQuestion: null,
+			result,
+			displayedProgress: 1.0,
+			poolSession: session,
+		};
+	}
+
+	const updatedSession = updatePoolSession(
+		session,
+		nextResult.poolId,
+		nextResult.stemId,
+		nextResult.optionIds,
+	);
+
+	const peekResult = selectPoolQuestion(updatedSession);
+
+	return updateProgress({
+		...state,
+		questionsSkipped: newSkipped,
+		currentQuestion: nextResult.question,
+		nextQuestion: peekResult?.question ?? null,
+		poolSession: updatedSession,
+	});
+}
+
 // ─── Reducer ───
 
 function quizReducer(state: EngineState, action: EngineAction): EngineState {
 	const { currentQuestion } = state;
 	if (!currentQuestion || state.internalPhase === 'complete') {
 		return state;
+	}
+
+	// Pool system has its own handler
+	if (state.usePoolSystem) {
+		return poolReducer(state, action);
 	}
 
 	// Mark question as asked
@@ -486,6 +638,15 @@ function updateProgress(state: EngineState): EngineState {
 		return { ...state, displayedProgress: 1.0 };
 	}
 
+	// Pool system uses simple linear progress
+	if (state.usePoolSystem) {
+		const newProgress = calculatePoolProgress(
+			state.questionsAnswered,
+			state.displayedProgress,
+		);
+		return { ...state, displayedProgress: newProgress };
+	}
+
 	const phase = state.internalPhase as 'phase1' | 'phase2' | 'phase3';
 	const newProgress = calculateProgress(
 		phase,
@@ -501,7 +662,50 @@ function updateProgress(state: EngineState): EngineState {
 
 // ─── Initial State ───
 
-function createInitialState(): EngineState {
+/** Create initial state for the pool (stem+pool) system */
+function createPoolInitialState(): EngineState {
+	const scores = initScores();
+	const session = initPoolSession();
+
+	// Select first question
+	const firstResult = selectPoolQuestion(session);
+	if (!firstResult) {
+		// Should never happen — we have 73 pools
+		return createLegacyInitialState();
+	}
+
+	const updatedSession = updatePoolSession(
+		session,
+		firstResult.poolId,
+		firstResult.stemId,
+		firstResult.optionIds,
+	);
+
+	// Pre-select second question for the card stack
+	const secondResult = selectPoolQuestion(updatedSession);
+
+	return {
+		internalPhase: 'phase1',
+		scores,
+		questionsAsked: new Set<string>(),
+		questionsAnswered: 0,
+		questionsSkipped: 0,
+		displayedProgress: 0,
+		primaryArchetype: null,
+		secondaryArchetype: null,
+		mirrorScore: initMirrorScore(),
+		phase2Answered: 0,
+		phase3Answered: 0,
+		currentQuestion: firstResult.question,
+		nextQuestion: secondResult?.question ?? null,
+		result: null,
+		poolSession: updatedSession,
+		usePoolSystem: true,
+	};
+}
+
+/** Create initial state for the legacy 3-phase system */
+function createLegacyInitialState(): EngineState {
 	const scores = initScores();
 	const askedIds = new Set<string>();
 	const firstQuestion = selectPhase1Question(scores, askedIds);
@@ -528,7 +732,13 @@ function createInitialState(): EngineState {
 		currentQuestion: firstQuestion,
 		nextQuestion,
 		result: null,
+		poolSession: null,
+		usePoolSystem: false,
 	};
+}
+
+function createInitialState(): EngineState {
+	return USE_STEM_POOL ? createPoolInitialState() : createLegacyInitialState();
 }
 
 // ─── Hook ───
@@ -571,6 +781,6 @@ export function useQuizEngine(): QuizEngine {
 	};
 }
 
-// Export for testing
-export { quizReducer, createInitialState, isBaseQuestion, isComboQuestion, isMirrorQuestion };
+// Export for testing and component use
+export { quizReducer, createInitialState, isBaseQuestion, isComboQuestion, isMirrorQuestion, isPoolQuestion };
 export type { EngineState, EngineAction, InternalPhase };

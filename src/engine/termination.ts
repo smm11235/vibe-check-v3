@@ -1,6 +1,25 @@
 import type { ArchetypeId, Scores, MirrorScore } from '@/data/types';
 import { getLeaderboard } from './scoring';
 
+// ─── Pool System Termination ───
+
+const MIN_POOL_QUESTIONS = 10;
+const MAX_POOL_QUESTIONS = 20;
+const POOL_LEAD_THRESHOLD = 2.0;
+
+/**
+ * Determine whether the pool-based quiz should end.
+ * Single-phase: terminate when dominant archetype has a clear lead, or max reached.
+ */
+export function shouldEndPoolQuiz(scores: Scores, questionsAnswered: number): boolean {
+	if (questionsAnswered >= MAX_POOL_QUESTIONS) return true;
+	if (questionsAnswered < MIN_POOL_QUESTIONS) return false;
+
+	const board = getLeaderboard(scores);
+	const leadGap = board[0].score - board[1].score;
+	return leadGap >= POOL_LEAD_THRESHOLD;
+}
+
 // ─── Constants ───
 
 const MIN_ANSWERED_PHASE1 = 10;

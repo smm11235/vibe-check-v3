@@ -94,3 +94,19 @@ export function calculateProgress(
 	// Never decrease
 	return Math.max(raw, previousProgress);
 }
+
+// ─── Pool System Progress ───
+
+const POOL_MAX_QUESTIONS = 20;
+
+/**
+ * Simple linear progress for the pool system.
+ * Caps at 0.99 (1.0 reserved for completion). Monotonically increasing.
+ */
+export function calculatePoolProgress(
+	questionsAnswered: number,
+	previousProgress: number,
+): number {
+	const raw = Math.min(questionsAnswered / POOL_MAX_QUESTIONS, 0.99);
+	return Math.max(raw, previousProgress);
+}

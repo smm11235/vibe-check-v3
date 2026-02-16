@@ -1,1524 +1,1487 @@
-import type { BaseQuestion, ComboQuestion, MirrorQuestion } from './types';
+// ─── Stem + Pool Content System ───
+// New question architecture: pithy stems × answer pools
+// Runtime assembles: stem → pool → 2 options from different archetypes
 
-// ═══════════════════════════════════════════════════════════════════════════════════
-// PHASE 1: BASE QUESTIONS (108)
-// 6 pairings × 18 questions each
-// ═══════════════════════════════════════════════════════════════════════════════════
+import type { ArchetypeId } from './types';
 
-export const BASE_QUESTIONS: BaseQuestion[] = [
-  // ─── Pulse vs Glow (18) ───
-  {
-    id: 'pg_1',
-    pair: 'pulse_glow',
-    text: 'Friday night. Pick one:',
-    optionA: { text: '🎉 Party with strangers', emoji: '🎉', archetype: 'pulse' },
-    optionB: { text: '🌄 6am trail run tomorrow', emoji: '🌄', archetype: 'glow' }
-  },
-  {
-    id: 'pg_2',
-    pair: 'pulse_glow',
-    text: 'Your life motto:',
-    optionA: { text: '💀 "Sleep when you\'re dead"', emoji: '💀', archetype: 'pulse' },
-    optionB: { text: '⚙️ "Discipline is freedom"', emoji: '⚙️', archetype: 'glow' }
-  },
-  {
-    id: 'pg_3',
-    pair: 'pulse_glow',
-    text: 'Better weekend morning:',
-    optionA: { text: '🛏️ Wake up somewhere unexpected', emoji: '🛏️', archetype: 'pulse' },
-    optionB: { text: '💪 Workout before sunrise', emoji: '💪', archetype: 'glow' }
-  },
-  {
-    id: 'pg_4',
-    pair: 'pulse_glow',
-    text: 'Day off. First instinct:',
-    optionA: { text: '📱 Text the group chat', emoji: '📱', archetype: 'pulse' },
-    optionB: { text: '✅ Check off your to-do list', emoji: '✅', archetype: 'glow' }
-  },
-  {
-    id: 'pg_5',
-    pair: 'pulse_glow',
-    text: 'Which artist?',
-    optionA: { text: '💃 Charli xcx', emoji: '💃', archetype: 'pulse' },
-    optionB: { text: '🎤 Kendrick Lamar', emoji: '🎤', archetype: 'glow' }
-  },
-  {
-    id: 'pg_6',
-    pair: 'pulse_glow',
-    text: 'Notification you\'d prefer:',
-    optionA: { text: '📍 "Everyone\'s going, come NOW"', emoji: '📍', archetype: 'pulse' },
-    optionB: { text: '🏆 "New personal record"', emoji: '🏆', archetype: 'glow' }
-  },
-  {
-    id: 'pg_7',
-    pair: 'pulse_glow',
-    text: 'Phone dies at 2pm:',
-    optionA: { text: '😰 Panicked - how will they find me?', emoji: '😰', archetype: 'pulse' },
-    optionB: { text: '😌 Honestly? Relieved.', emoji: '😌', archetype: 'glow' }
-  },
-  {
-    id: 'pg_8',
-    pair: 'pulse_glow',
-    text: 'Better compliment:',
-    optionA: { text: '🎉 "You\'re the life of the party"', emoji: '🎉', archetype: 'pulse' },
-    optionB: { text: '💪 "You never give up"', emoji: '💪', archetype: 'glow' }
-  },
-  {
-    id: 'pg_9',
-    pair: 'pulse_glow',
-    text: 'More afraid of:',
-    optionA: { text: '😱 Missing something legendary', emoji: '😱', archetype: 'pulse' },
-    optionB: { text: '😤 Wasting a day you could improve', emoji: '😤', archetype: 'glow' }
-  },
-  {
-    id: 'pg_10',
-    pair: 'pulse_glow',
-    text: 'Trip choice:',
-    optionA: { text: '✈️ Ibiza with new friends', emoji: '✈️', archetype: 'pulse' },
-    optionB: { text: '🥾 Solo hike the Camino', emoji: '🥾', archetype: 'glow' }
-  },
-  {
-    id: 'pg_11',
-    pair: 'pulse_glow',
-    text: 'Plans cancel. You:',
-    optionA: { text: '📞 Find a replacement immediately', emoji: '📞', archetype: 'pulse' },
-    optionB: { text: '💻 Work on your side project', emoji: '💻', archetype: 'glow' }
-  },
-  {
-    id: 'pg_12',
-    pair: 'pulse_glow',
-    text: 'Stresses you more:',
-    optionA: { text: '😬 Quiet Saturday with no plans', emoji: '😬', archetype: 'pulse' },
-    optionB: { text: '📉 Being behind on goals', emoji: '📉', archetype: 'glow' }
-  },
-  {
-    id: 'pg_13',
-    pair: 'pulse_glow',
-    text: 'Better flex:',
-    optionA: { text: '🎉 300 people know your name', emoji: '🎉', archetype: 'pulse' },
-    optionB: { text: '💪 100 pushups straight', emoji: '💪', archetype: 'glow' }
-  },
-  {
-    id: 'pg_14',
-    pair: 'pulse_glow',
-    text: 'Your TikTok FYP:',
-    optionA: { text: '🕺 Going-out fits and party clips', emoji: '🕺', archetype: 'pulse' },
-    optionB: { text: '🏋️ 5am routines and meal prep', emoji: '🏋️', archetype: 'glow' }
-  },
-  {
-    id: 'pg_15',
-    pair: 'pulse_glow',
-    text: 'Your Roman Empire:',
-    optionA: { text: '🌙 That one legendary night', emoji: '🌙', archetype: 'pulse' },
-    optionB: { text: '📈 Your five-year plan', emoji: '📈', archetype: 'glow' }
-  },
-  {
-    id: 'pg_16',
-    pair: 'pulse_glow',
-    text: 'Group chat location drops:',
-    optionA: { text: '🚗 Already getting ready', emoji: '🚗', archetype: 'pulse' },
-    optionB: { text: '⏰ Check if it conflicts with your plans', emoji: '⏰', archetype: 'glow' }
-  },
-  {
-    id: 'pg_17',
-    pair: 'pulse_glow',
-    text: 'Your personal brand:',
-    optionA: { text: '✨ Main character energy', emoji: '✨', archetype: 'pulse' },
-    optionB: { text: '🎯 Results speak for themselves', emoji: '🎯', archetype: 'glow' }
-  },
-  {
-    id: 'pg_18',
-    pair: 'pulse_glow',
-    text: 'Podcast you\'d finish:',
-    optionA: { text: '🎤 Unhinged celebrity interview', emoji: '🎤', archetype: 'pulse' },
-    optionB: { text: '📊 Building an empire from zero', emoji: '📊', archetype: 'glow' }
-  },
+// ─── New Types ───
 
-  // ─── Pulse vs Cozy (18) ───
-  {
-    id: 'pc_1',
-    pair: 'pulse_cozy',
-    text: 'Better night:',
-    optionA: { text: '🌃 Rooftop bar, DJ, strangers', emoji: '🌃', archetype: 'pulse' },
-    optionB: { text: '🕯️ Couch, candle, quiet movie', emoji: '🕯️', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_2',
-    pair: 'pulse_cozy',
-    text: 'Happy place:',
-    optionA: { text: '🌅 Crowded festival at golden hour', emoji: '🌅', archetype: 'pulse' },
-    optionB: { text: '🌧️ Rainy window, tea, book', emoji: '🌧️', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_3',
-    pair: 'pulse_cozy',
-    text: 'Sounds worse:',
-    optionA: { text: '😩 "Let\'s just stay in"', emoji: '😩', archetype: 'pulse' },
-    optionB: { text: '😖 "There\'s a huge crowd"', emoji: '😖', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_4',
-    pair: 'pulse_cozy',
-    text: 'Comfort item:',
-    optionA: { text: '🎵 Your going-out playlist', emoji: '🎵', archetype: 'pulse' },
-    optionB: { text: '👕 Your favorite hoodie', emoji: '👕', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_5',
-    pair: 'pulse_cozy',
-    text: 'How many close friends?',
-    optionA: { text: '👥 More the better', emoji: '👥', archetype: 'pulse' },
-    optionB: { text: '✋ Can count on one hand', emoji: '✋', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_6',
-    pair: 'pulse_cozy',
-    text: 'Want to be known as:',
-    optionA: { text: '🙌 The one who\'s always down', emoji: '🙌', archetype: 'pulse' },
-    optionB: { text: '💛 The one you talk to when you need to', emoji: '💛', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_7',
-    pair: 'pulse_cozy',
-    text: 'Better first date:',
-    optionA: { text: '🎶 Concert you both like', emoji: '🎶', archetype: 'pulse' },
-    optionB: { text: '🍳 Cook dinner together', emoji: '🍳', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_8',
-    pair: 'pulse_cozy',
-    text: 'Pick a vibe:',
-    optionA: { text: '🌙 "See where the night takes us"', emoji: '🌙', archetype: 'pulse' },
-    optionB: { text: '📋 "I made a reservation"', emoji: '📋', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_9',
-    pair: 'pulse_cozy',
-    text: 'Your camera roll:',
-    optionA: { text: '📸 Nights out, group shots, random', emoji: '📸', archetype: 'pulse' },
-    optionB: { text: '🐕 Food, pets, sunsets, feelings', emoji: '🐕', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_10',
-    pair: 'pulse_cozy',
-    text: 'Bigger red flag:',
-    optionA: { text: '🚩 They never want to go out', emoji: '🚩', archetype: 'pulse' },
-    optionB: { text: '🚩 They can\'t sit still 10 minutes', emoji: '🚩', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_11',
-    pair: 'pulse_cozy',
-    text: 'Which musician:',
-    optionA: { text: '💃 Doja Cat', emoji: '💃', archetype: 'pulse' },
-    optionB: { text: '🎸 Phoebe Bridgers', emoji: '🎸', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_12',
-    pair: 'pulse_cozy',
-    text: 'Memory you\'d relive:',
-    optionA: { text: '✨ A night that became a story', emoji: '✨', archetype: 'pulse' },
-    optionB: { text: '💕 Quiet moment with someone who gets you', emoji: '💕', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_13',
-    pair: 'pulse_cozy',
-    text: 'Comfort content:',
-    optionA: { text: '📱 Live reality show with voting', emoji: '📱', archetype: 'pulse' },
-    optionB: { text: '🛋️ 90s sitcom you\'ve seen 4 times', emoji: '🛋️', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_14',
-    pair: 'pulse_cozy',
-    text: 'Friday 11pm, honestly:',
-    optionA: { text: '⚡ Just getting started', emoji: '⚡', archetype: 'pulse' },
-    optionB: { text: '😴 Already in bed, zero regrets', emoji: '😴', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_15',
-    pair: 'pulse_cozy',
-    text: 'Weekend plan:',
-    optionA: { text: '🎪 A pop-up you saw on Instagram', emoji: '🎪', archetype: 'pulse' },
-    optionB: { text: '🧶 That craft project you\'ll never finish', emoji: '🧶', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_16',
-    pair: 'pulse_cozy',
-    text: 'Dating app photo that\'s you:',
-    optionA: { text: '🥂 You at an event, belonging', emoji: '🥂', archetype: 'pulse' },
-    optionB: { text: '🐱 You with a pet, cozy', emoji: '🐱', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_17',
-    pair: 'pulse_cozy',
-    text: 'Compliment to make your week:',
-    optionA: { text: '🌟 "You\'re the main character"', emoji: '🌟', archetype: 'pulse' },
-    optionB: { text: '🫂 "Talking to you feels like a warm hug"', emoji: '🫂', archetype: 'cozy' }
-  },
-  {
-    id: 'pc_18',
-    pair: 'pulse_cozy',
-    text: 'Choose one:',
-    optionA: { text: '🍸 Cocktail at the new spot', emoji: '🍸', archetype: 'pulse' },
-    optionB: { text: '🕯️ Actual candle, at home, now', emoji: '🕯️', archetype: 'cozy' }
-  },
+export interface AnswerOption {
+  id: string;            // e.g., "music_artists_1"
+  text: string;          // Display text (short, pithy)
+  emoji: string;         // Emoji prefix
+  weights: Record<ArchetypeId, number>; // -1.0 to 1.0 per archetype
+}
 
-  // ─── Pulse vs Lore (18) ───
-  {
-    id: 'pl_1',
-    pair: 'pulse_lore',
-    text: 'At a party, you\'re most likely:',
-    optionA: { text: '🤝 Introducing people to each other', emoji: '🤝', archetype: 'pulse' },
-    optionB: { text: '🗣️ In the corner, deep niche talk', emoji: '🗣️', archetype: 'lore' }
-  },
-  {
-    id: 'pl_2',
-    pair: 'pulse_lore',
-    text: 'Superpower:',
-    optionA: { text: '⚡ Teleportation - be anywhere instantly', emoji: '⚡', archetype: 'pulse' },
-    optionB: { text: '🧠 Photographic memory - never forget', emoji: '🧠', archetype: 'lore' }
-  },
-  {
-    id: 'pl_3',
-    pair: 'pulse_lore',
-    text: 'Better rabbit hole:',
-    optionA: { text: '🗺️ New city, no itinerary', emoji: '🗺️', archetype: 'pulse' },
-    optionB: { text: '📺 45-part video essay on something', emoji: '📺', archetype: 'lore' }
-  },
-  {
-    id: 'pl_4',
-    pair: 'pulse_lore',
-    text: 'Better flex:',
-    optionA: { text: '👋 Knowing everyone in the room', emoji: '👋', archetype: 'pulse' },
-    optionB: { text: '📚 Knowing everything about one thing', emoji: '📚', archetype: 'lore' }
-  },
-  {
-    id: 'pl_5',
-    pair: 'pulse_lore',
-    text: 'Better compliment:',
-    optionA: { text: '🌐 "You know everyone"', emoji: '🌐', archetype: 'pulse' },
-    optionB: { text: '🧠 "You know everything"', emoji: '🧠', archetype: 'lore' }
-  },
-  {
-    id: 'pl_6',
-    pair: 'pulse_lore',
-    text: 'You\'d rather watch:',
-    optionA: { text: '🏟️ Live event - concert, game, fight', emoji: '🏟️', archetype: 'pulse' },
-    optionB: { text: '📺 Niche limited series', emoji: '📺', archetype: 'lore' }
-  },
-  {
-    id: 'pl_7',
-    pair: 'pulse_lore',
-    text: 'Your Wikipedia history:',
-    optionA: { text: '👤 People you just met or heard of', emoji: '👤', archetype: 'pulse' },
-    optionB: { text: '🔍 Obscure topics at 2am', emoji: '🔍', archetype: 'lore' }
-  },
-  {
-    id: 'pl_8',
-    pair: 'pulse_lore',
-    text: 'When someone recommends something:',
-    optionA: { text: '👍 Check it out if people co-sign', emoji: '👍', archetype: 'pulse' },
-    optionB: { text: '🤔 Want to know WHY it\'s good', emoji: '🤔', archetype: 'lore' }
-  },
-  {
-    id: 'pl_9',
-    pair: 'pulse_lore',
-    text: 'Lose track of time with:',
-    optionA: { text: '💬 Great conversation with new people', emoji: '💬', archetype: 'pulse' },
-    optionB: { text: '🔬 Going deep on your obsession', emoji: '🔬', archetype: 'lore' }
-  },
-  {
-    id: 'pl_10',
-    pair: 'pulse_lore',
-    text: 'Show format:',
-    optionA: { text: '📺 Reality TV - chaos and drama', emoji: '📺', archetype: 'pulse' },
-    optionB: { text: '🎬 Documentary that changes your view', emoji: '🎬', archetype: 'lore' }
-  },
-  {
-    id: 'pl_11',
-    pair: 'pulse_lore',
-    text: 'Group chat energy:',
-    optionA: { text: '😂 Memes and making plans', emoji: '😂', archetype: 'pulse' },
-    optionB: { text: '🔗 Sending links "you NEED this"', emoji: '🔗', archetype: 'lore' }
-  },
-  {
-    id: 'pl_12',
-    pair: 'pulse_lore',
-    text: 'Time-travel to:',
-    optionA: { text: '🎺 Roaring \'20s - jazz, parties', emoji: '🎺', archetype: 'pulse' },
-    optionB: { text: '📜 Ancient Alexandria - library, scholars', emoji: '📜', archetype: 'lore' }
-  },
-  {
-    id: 'pl_13',
-    pair: 'pulse_lore',
-    text: 'Browser tabs right now:',
-    optionA: { text: '💬 17 group chat and event links', emoji: '💬', archetype: 'pulse' },
-    optionB: { text: '📑 47 research tabs on one thing', emoji: '📑', archetype: 'lore' }
-  },
-  {
-    id: 'pl_14',
-    pair: 'pulse_lore',
-    text: 'Trivia night, you bring:',
-    optionA: { text: '🤝 Vibes and team spirit', emoji: '🤝', archetype: 'pulse' },
-    optionB: { text: '🧠 The actual answers', emoji: '🧠', archetype: 'lore' }
-  },
-  {
-    id: 'pl_15',
-    pair: 'pulse_lore',
-    text: 'Someone says "fun fact":',
-    optionA: { text: '😅 Panic and talk about yourself', emoji: '😅', archetype: 'pulse' },
-    optionB: { text: '🤓 Already have 12 queued', emoji: '🤓', archetype: 'lore' }
-  },
-  {
-    id: 'pl_16',
-    pair: 'pulse_lore',
-    text: 'Your villain origin story:',
-    optionA: { text: '😤 Not being invited', emoji: '😤', archetype: 'pulse' },
-    optionB: { text: '😠 Someone getting facts wrong', emoji: '😠', archetype: 'lore' }
-  },
-  {
-    id: 'pl_17',
-    pair: 'pulse_lore',
-    text: 'Date activity:',
-    optionA: { text: '🎳 Active thing where you can talk', emoji: '🎳', archetype: 'pulse' },
-    optionB: { text: '🎮 Co-op gaming or museum walk', emoji: '🎮', archetype: 'lore' }
-  },
-  {
-    id: 'pl_18',
-    pair: 'pulse_lore',
-    text: 'Your notifications:',
-    optionA: { text: '📲 Group chat explosion every 5 min', emoji: '📲', archetype: 'pulse' },
-    optionB: { text: '🔕 Muted - you\'ll check eventually', emoji: '🔕', archetype: 'lore' }
-  },
+export interface AnswerPool {
+  id: string;            // e.g., "pool_music_artists"
+  stemId: string;        // Which stem this pool belongs to
+  category: PoolCategory;
+  label: string;         // Short description for debugging: "Music artists"
+  options: AnswerOption[];
+}
 
-  // ─── Glow vs Cozy (18) ───
-  {
-    id: 'gc_1',
-    pair: 'glow_cozy',
-    text: 'Better Sunday:',
-    optionA: { text: '📋 Meal prep, gym, plan week', emoji: '📋', archetype: 'glow' },
-    optionB: { text: '😴 Sleep in, slow breakfast, no plans', emoji: '😴', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_2',
-    pair: 'glow_cozy',
-    text: 'Which resonates more:',
-    optionA: { text: '📈 "I can always do better"', emoji: '📈', archetype: 'glow' },
-    optionB: { text: '🧘 "I\'m learning to be okay with me"', emoji: '🧘', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_3',
-    pair: 'glow_cozy',
-    text: 'Which drink:',
-    optionA: { text: '🥤 Protein shake at 6:30am', emoji: '🥤', archetype: 'glow' },
-    optionB: { text: '☕ Hot chocolate at 10pm', emoji: '☕', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_4',
-    pair: 'glow_cozy',
-    text: 'Value more in a friend:',
-    optionA: { text: '🔥 They push you to be better', emoji: '🔥', archetype: 'glow' },
-    optionB: { text: '🤗 They accept you as you are', emoji: '🤗', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_5',
-    pair: 'glow_cozy',
-    text: 'Rather someone say:',
-    optionA: { text: '💫 "You inspire me"', emoji: '💫', archetype: 'glow' },
-    optionB: { text: '🛡️ "You make me feel safe"', emoji: '🛡️', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_6',
-    pair: 'glow_cozy',
-    text: 'Early alarm goes off. First thought:',
-    optionA: { text: '⏰ Good - I\'m ahead of everyone', emoji: '⏰', archetype: 'glow' },
-    optionB: { text: '😴 *hits snooze with zero guilt*', emoji: '😴', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_7',
-    pair: 'glow_cozy',
-    text: 'Bigger dealbreaker in a partner:',
-    optionA: { text: '🚩 No ambition', emoji: '🚩', archetype: 'glow' },
-    optionB: { text: '🚩 No emotional availability', emoji: '🚩', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_8',
-    pair: 'glow_cozy',
-    text: 'Vacation style:',
-    optionA: { text: '⛰️ Active - hiking, training, sports', emoji: '⛰️', archetype: 'glow' },
-    optionB: { text: '🏠 Cabin - fireplace, games, slow mornings', emoji: '🏠', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_9',
-    pair: 'glow_cozy',
-    text: 'Instagram aesthetic:',
-    optionA: { text: '💪 Gym selfies, sunrise runs, progress', emoji: '💪', archetype: 'glow' },
-    optionB: { text: '☕ Coffee shots, golden hour, "life lately"', emoji: '☕', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_10',
-    pair: 'glow_cozy',
-    text: 'Quote that fits:',
-    optionA: { text: '💬 "Hard work beats talent when talent doesn\'t work"', emoji: '💬', archetype: 'glow' },
-    optionB: { text: '💬 "Rest is not the opposite of productivity"', emoji: '💬', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_11',
-    pair: 'glow_cozy',
-    text: 'Bond with people over:',
-    optionA: { text: '🎯 Shared goals and accountability', emoji: '🎯', archetype: 'glow' },
-    optionB: { text: '💗 Shared feelings and comfortable silence', emoji: '💗', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_12',
-    pair: 'glow_cozy',
-    text: 'Worst thing someone could say:',
-    optionA: { text: '😨 "They peaked"', emoji: '😨', archetype: 'glow' },
-    optionB: { text: '😨 "They\'re cold"', emoji: '😨', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_13',
-    pair: 'glow_cozy',
-    text: 'Your alarm label:',
-    optionA: { text: '🌅 RISE AND GRIND', emoji: '🌅', archetype: 'glow' },
-    optionB: { text: '🥐 "not yet bestie"', emoji: '🥐', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_14',
-    pair: 'glow_cozy',
-    text: 'Valid reason to cancel plans:',
-    optionA: { text: '🏃 Training for something', emoji: '🏃', archetype: 'glow' },
-    optionB: { text: '🫖 Mental health night', emoji: '🫖', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_15',
-    pair: 'glow_cozy',
-    text: 'Gift you\'d actually want:',
-    optionA: { text: '🎧 Nice headphones or fitness tracker', emoji: '🎧', archetype: 'glow' },
-    optionB: { text: '🧸 Handmade scrapbook or blanket', emoji: '🧸', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_16',
-    pair: 'glow_cozy',
-    text: 'Your notes app:',
-    optionA: { text: '✅ Goals, PRs, motivational quotes', emoji: '✅', archetype: 'glow' },
-    optionB: { text: '📝 Song lyrics, recipes, random feelings', emoji: '📝', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_17',
-    pair: 'glow_cozy',
-    text: 'Hot take:',
-    optionA: { text: '🔥 Rest days feel like wasted days', emoji: '🔥', archetype: 'glow' },
-    optionB: { text: '🧊 Ambition culture is exhausting', emoji: '🧊', archetype: 'cozy' }
-  },
-  {
-    id: 'gc_18',
-    pair: 'glow_cozy',
-    text: 'Pick an aesthetic:',
-    optionA: { text: '🖤 Clean girl / "that girl" energy', emoji: '🖤', archetype: 'glow' },
-    optionB: { text: '🤎 Cottagecore or dark academia', emoji: '🤎', archetype: 'cozy' }
-  },
+export type PoolCategory =
+  | 'tiktok_genz'
+  | 'music'
+  | 'tv_film'
+  | 'gaming'
+  | 'worldviews'
+  | 'friendships'
+  | 'nights_out'
+  | 'work_school'
+  | 'exercise_selfcare'
+  | 'dating_romance'
+  | 'spicy'
+  | 'humor';
 
-  // ─── Glow vs Lore (18) ───
-  {
-    id: 'gl_1',
-    pair: 'glow_lore',
-    text: 'Better flex:',
-    optionA: { text: '🏃 Run a marathon', emoji: '🏃', archetype: 'glow' },
-    optionB: { text: '🎮 Beat a game on hardest difficulty', emoji: '🎮', archetype: 'lore' }
-  },
-  {
-    id: 'gl_2',
-    pair: 'glow_lore',
-    text: 'Motivates you more:',
-    optionA: { text: '📊 A leaderboard', emoji: '📊', archetype: 'glow' },
-    optionB: { text: '🔮 A mystery', emoji: '🔮', archetype: 'lore' }
-  },
-  {
-    id: 'gl_3',
-    pair: 'glow_lore',
-    text: 'Heist movie role:',
-    optionA: { text: '🏋️ Trained for months to pull it off', emoji: '🏋️', archetype: 'glow' },
-    optionB: { text: '🖥️ Planned every detail from a dark room', emoji: '🖥️', archetype: 'lore' }
-  },
-  {
-    id: 'gl_4',
-    pair: 'glow_lore',
-    text: 'Which bookshelf:',
-    optionA: { text: '📖 Self-improvement, biographies, how-to', emoji: '📖', archetype: 'glow' },
-    optionB: { text: '📚 Fantasy, sci-fi, manga, deep non-fiction', emoji: '📚', archetype: 'lore' }
-  },
-  {
-    id: 'gl_5',
-    pair: 'glow_lore',
-    text: 'Admire someone because:',
-    optionA: { text: '💪 They put in work and it shows', emoji: '💪', archetype: 'glow' },
-    optionB: { text: '🧠 They know things most people don\'t', emoji: '🧠', archetype: 'lore' }
-  },
-  {
-    id: 'gl_6',
-    pair: 'glow_lore',
-    text: 'Skill you\'d rather master:',
-    optionA: { text: '⚽ Sport or physical discipline', emoji: '⚽', archetype: 'glow' },
-    optionB: { text: '🎹 Language or instrument', emoji: '🎹', archetype: 'lore' }
-  },
-  {
-    id: 'gl_7',
-    pair: 'glow_lore',
-    text: 'Better compliment:',
-    optionA: { text: '🤖 "You\'re a machine"', emoji: '🤖', archetype: 'glow' },
-    optionB: { text: '🧠 "You\'re a genius"', emoji: '🧠', archetype: 'lore' }
-  },
-  {
-    id: 'gl_8',
-    pair: 'glow_lore',
-    text: 'Learn new things by:',
-    optionA: { text: '🔨 Doing - trial, error, repetition', emoji: '🔨', archetype: 'glow' },
-    optionB: { text: '📖 Researching - reading, watching', emoji: '📖', archetype: 'lore' }
-  },
-  {
-    id: 'gl_9',
-    pair: 'glow_lore',
-    text: 'Your comfort zone is:',
-    optionA: { text: '🚀 Something you\'re actively leaving', emoji: '🚀', archetype: 'glow' },
-    optionB: { text: '🎮 Something you\'ve perfected', emoji: '🎮', archetype: 'lore' }
-  },
-  {
-    id: 'gl_10',
-    pair: 'glow_lore',
-    text: 'Which duo:',
-    optionA: { text: '🥊 Rocky and Apollo Creed', emoji: '🥊', archetype: 'glow' },
-    optionB: { text: '🧙 Frodo and Samwise', emoji: '🧙', archetype: 'lore' }
-  },
-  {
-    id: 'gl_11',
-    pair: 'glow_lore',
-    text: 'Something goes wrong. Instinct:',
-    optionA: { text: '🔧 Work harder until you fix it', emoji: '🔧', archetype: 'glow' },
-    optionB: { text: '🔍 Figure out exactly what happened', emoji: '🔍', archetype: 'lore' }
-  },
-  {
-    id: 'gl_12',
-    pair: 'glow_lore',
-    text: 'Dream collab partner:',
-    optionA: { text: '🏋️ Coach who brings out your best', emoji: '🏋️', archetype: 'glow' },
-    optionB: { text: '🎨 Creator whose work you worship', emoji: '🎨', archetype: 'lore' }
-  },
-  {
-    id: 'gl_13',
-    pair: 'glow_lore',
-    text: 'Your screen time:',
-    optionA: { text: '📱 Fitness apps and productivity tools', emoji: '📱', archetype: 'glow' },
-    optionB: { text: '🌐 YouTube, Reddit, wiki rabbit holes', emoji: '🌐', archetype: 'lore' }
-  },
-  {
-    id: 'gl_14',
-    pair: 'glow_lore',
-    text: 'Still up at 1am because:',
-    optionA: { text: '🏃 Couldn\'t sleep, might as well work', emoji: '🏃', archetype: 'glow' },
-    optionB: { text: '🌀 Fell into a rabbit hole, no going back', emoji: '🌀', archetype: 'lore' }
-  },
-  {
-    id: 'gl_15',
-    pair: 'glow_lore',
-    text: 'Childhood flex:',
-    optionA: { text: '🏆 Won a sports trophy', emoji: '🏆', archetype: 'glow' },
-    optionB: { text: '🎮 100%\'d a video game', emoji: '🎮', archetype: 'lore' }
-  },
-  {
-    id: 'gl_16',
-    pair: 'glow_lore',
-    text: 'Your hero:',
-    optionA: { text: '🏔️ Climbed from nothing through grind', emoji: '🏔️', archetype: 'glow' },
-    optionB: { text: '🔬 Discovered something that changed the world', emoji: '🔬', archetype: 'lore' }
-  },
-  {
-    id: 'gl_17',
-    pair: 'glow_lore',
-    text: 'Internet-famous for:',
-    optionA: { text: '🏅 An achievement everyone respects', emoji: '🏅', archetype: 'glow' },
-    optionB: { text: '📖 Creating for a niche that worships you', emoji: '📖', archetype: 'lore' }
-  },
-  {
-    id: 'gl_18',
-    pair: 'glow_lore',
-    text: 'First app you check:',
-    optionA: { text: '📊 Habit tracker or workout log', emoji: '📊', archetype: 'glow' },
-    optionB: { text: '🗂️ Discord, Reddit, fandom forum', emoji: '🗂️', archetype: 'lore' }
-  },
+export interface QuestionStem {
+  id: string;            // e.g., "stem_better_flex"
+  text: string;          // Primary phrasing: "Better flex?"
+  variants: string[];    // Alt phrasings: ["Which hits harder?", "More impressive?"]
+  pools: string[];       // Pool IDs associated with this stem
+}
 
-  // ─── Cozy vs Lore (18) ───
+// ─── Helper: weight shorthand ───
+// For readability: w(pulse, glow, cozy, lore)
+function w(pulse: number, glow: number, cozy: number, lore: number): Record<ArchetypeId, number> {
+  return { pulse, glow, cozy, lore };
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// QUESTION STEMS (25)
+// ═══════════════════════════════════════════════════════════════════
+
+export const QUESTION_STEMS: QuestionStem[] = [
+  // ── Preference / Taste ──
   {
-    id: 'cl_1',
-    pair: 'cozy_lore',
-    text: 'Better rainy day:',
-    optionA: { text: '🍰 Bake something from scratch', emoji: '🍰', archetype: 'cozy' },
-    optionB: { text: '🎮 Start a new game or rewatch', emoji: '🎮', archetype: 'lore' }
+    id: 'stem_better',
+    text: 'Which is better?',
+    variants: ['Pick one.', 'Choose your fighter.'],
+    pools: ['pool_music_artists', 'pool_shows_movies', 'pool_games', 'pool_social_platforms', 'pool_vibes', 'pool_date_spots', 'pool_celebrities'],
   },
   {
-    id: 'cl_2',
-    pair: 'cozy_lore',
-    text: 'Conversation topic with someone new:',
-    optionA: { text: '😊 "What made you really happy lately?"', emoji: '😊', archetype: 'cozy' },
-    optionB: { text: '🤔 "What could you talk about forever?"', emoji: '🤔', archetype: 'lore' }
+    id: 'stem_flex',
+    text: 'Better flex?',
+    variants: ['Which hits harder?', 'More impressive?'],
+    pools: ['pool_flex_life', 'pool_flex_social', 'pool_flex_skills'],
   },
   {
-    id: 'cl_3',
-    pair: 'cozy_lore',
-    text: 'The thing you collect:',
-    optionA: { text: '📝 Recipes, playlists, moments', emoji: '📝', archetype: 'cozy' },
-    optionB: { text: '📊 Facts, references, rankings', emoji: '📊', archetype: 'lore' }
+    id: 'stem_cringe',
+    text: 'More cringe?',
+    variants: ['Ugh:', 'Bigger ick?'],
+    pools: ['pool_cringe_social', 'pool_cringe_dating', 'pool_cringe_online'],
   },
   {
-    id: 'cl_4',
-    pair: 'cozy_lore',
-    text: 'Your love language is closer to:',
-    optionA: { text: '🎁 Acts of service - I made this for you', emoji: '🎁', archetype: 'cozy' },
-    optionB: { text: '🕐 Quality time - let\'s do our favorite thing', emoji: '🕐', archetype: 'lore' }
+    id: 'stem_red_flag',
+    text: 'Red flag?',
+    variants: ['Dealbreaker?', 'Um, no,'],
+    pools: ['pool_redflag_dating', 'pool_redflag_friendship', 'pool_redflag_vibes'],
   },
   {
-    id: 'cl_5',
-    pair: 'cozy_lore',
-    text: 'YouTube video type:',
-    optionA: { text: '🍳 Calm cooking or pottery channel', emoji: '🍳', archetype: 'cozy' },
-    optionB: { text: '🎬 3-hour analysis of why a movie works', emoji: '🎬', archetype: 'lore' }
+    id: 'stem_green_flag',
+    text: 'Green flag?',
+    variants: ['Love to see it,', 'Instant yes?'],
+    pools: ['pool_greenflag_dating', 'pool_greenflag_friendship'],
+  },
+  // ── Hot Takes / Opinion ──
+  {
+    id: 'stem_hot_take',
+    text: 'Hot take!',
+    variants: ['Unpopular opinion:', 'Controversial but:'],
+    pools: ['pool_hottake_life', 'pool_hottake_social', 'pool_hottake_dating', 'pool_hottake_culture', 'pool_hottake_gen', 'pool_hottake_self'],
   },
   {
-    id: 'cl_6',
-    pair: 'cozy_lore',
-    text: 'Notice first about someone\'s space:',
-    optionA: { text: '🏡 Whether it feels warm and lived-in', emoji: '🏡', archetype: 'cozy' },
-    optionB: { text: '📚 What\'s on their shelves and walls', emoji: '📚', archetype: 'lore' }
+    id: 'stem_overrated',
+    text: 'Overrated or underrated?',
+    variants: ['Overhyped?', 'Actually good or nah?'],
+    pools: ['pool_rated_activities', 'pool_rated_trends', 'pool_rated_food'],
   },
   {
-    id: 'cl_7',
-    pair: 'cozy_lore',
-    text: 'Form of escapism:',
-    optionA: { text: '📺 Comfort rewatches and familiar rituals', emoji: '📺', archetype: 'cozy' },
-    optionB: { text: '🌍 New world to learn everything about', emoji: '🌍', archetype: 'lore' }
+    id: 'stem_valid',
+    text: 'Valid or unhinged?',
+    variants: ['Normal or psycho?', 'Reasonable or chaotic?'],
+    pools: ['pool_valid_habits', 'pool_valid_social', 'pool_valid_dating'],
+  },
+  // ── Scenario / "Would You Rather" ──
+  {
+    id: 'stem_rather',
+    text: 'Would you rather...',
+    variants: ['Pick your reality:', 'You have to choose:'],
+    pools: ['pool_rather_social', 'pool_rather_life', 'pool_rather_night', 'pool_superpowers'],
   },
   {
-    id: 'cl_8',
-    pair: 'cozy_lore',
-    text: 'Way to your heart:',
-    optionA: { text: '💝 Remember the small things I mentioned', emoji: '💝', archetype: 'cozy' },
-    optionB: { text: '🤩 Get genuinely excited about my interests', emoji: '🤩', archetype: 'lore' }
+    id: 'stem_friday',
+    text: 'Friday night:',
+    variants: ['It\'s 8pm, you\'re:', 'Weekend mode:'],
+    pools: ['pool_friday_plans', 'pool_friday_energy'],
   },
   {
-    id: 'cl_9',
-    pair: 'cozy_lore',
-    text: 'Holiday gift:',
-    optionA: { text: '🎁 Something handmade or deeply personal', emoji: '🎁', archetype: 'cozy' },
-    optionB: { text: '💎 Something rare from a niche you love', emoji: '💎', archetype: 'lore' }
+    id: 'stem_vibe_check',
+    text: 'Vibe check:',
+    variants: ['Energy right now:', 'Mood:'],
+    pools: ['pool_vibe_moods', 'pool_vibe_aesthetics', 'pool_vibe_seasons'],
+  },
+  // ── Identity / Self ──
+  {
+    id: 'stem_more_you',
+    text: 'More you?',
+    variants: ['Which one are you?', 'Be honest:'],
+    pools: ['pool_you_social', 'pool_you_conflict', 'pool_you_friend', 'pool_you_energy', 'pool_you_mornings'],
   },
   {
-    id: 'cl_10',
-    pair: 'cozy_lore',
-    text: 'When you really like something:',
-    optionA: { text: '🍷 Savour it slowly', emoji: '🍷', archetype: 'cozy' },
-    optionB: { text: '🏃 Consume everything related immediately', emoji: '🏃', archetype: 'lore' }
+    id: 'stem_guilty',
+    text: 'Guilty pleasure?',
+    variants: ['No judgement:', 'Secretly love it?'],
+    pools: ['pool_guilty_media', 'pool_guilty_habits'],
   },
   {
-    id: 'cl_11',
-    pair: 'cozy_lore',
-    text: 'Better co-op activity:',
-    optionA: { text: '🧩 Jigsaw puzzle or board game by fire', emoji: '🧩', archetype: 'cozy' },
-    optionB: { text: '🏗️ Minecraft building or TTRPG campaign', emoji: '🏗️', archetype: 'lore' }
+    id: 'stem_toxic_trait',
+    text: 'Your toxic trait?',
+    variants: ['We all have one:', 'Own it:'],
+    pools: ['pool_toxic_social', 'pool_toxic_dating', 'pool_toxic_habits'],
+  },
+  // ── Social / Friendship ──
+  {
+    id: 'stem_friend_group',
+    text: 'In your friend group you\'re:',
+    variants: ['Your role:', 'You\'re the one who:'],
+    pools: ['pool_role_group', 'pool_role_planning', 'pool_role_drama'],
   },
   {
-    id: 'cl_12',
-    pair: 'cozy_lore',
-    text: 'Trait you find more attractive:',
-    optionA: { text: '💛 Emotional intelligence', emoji: '💛', archetype: 'cozy' },
-    optionB: { text: '🔥 Passionate expertise', emoji: '🔥', archetype: 'lore' }
+    id: 'stem_group_chat',
+    text: 'In the group chat:',
+    variants: ['Group chat energy:', 'Your DMs say:'],
+    pools: ['pool_gc_behavior', 'pool_gc_content'],
+  },
+  // ── Spicy / Dating ──
+  {
+    id: 'stem_ick',
+    text: 'Instant ick?',
+    variants: ['Turned off by:', 'Nope:'],
+    pools: ['pool_ick_dating', 'pool_ick_social'],
   },
   {
-    id: 'cl_13',
-    pair: 'cozy_lore',
-    text: 'Road trip vibe:',
-    optionA: { text: '🎵 Curated playlist and midnight snacks', emoji: '🎵', archetype: 'cozy' },
-    optionB: { text: '🎧 Podcast deep-dive and gas station drinks', emoji: '🎧', archetype: 'lore' }
+    id: 'stem_rizz',
+    text: 'More rizz?',
+    variants: ['Better move:', 'Smoother:'],
+    pools: ['pool_rizz_moves', 'pool_rizz_energy'],
   },
   {
-    id: 'cl_14',
-    pair: 'cozy_lore',
-    text: 'Your bookmarks folder:',
-    optionA: { text: '📌 Recipes, cafes, gift ideas', emoji: '📌', archetype: 'cozy' },
-    optionB: { text: '🔖 Lore explainers, tier lists, build guides', emoji: '🔖', archetype: 'lore' }
+    id: 'stem_date_night',
+    text: 'Ideal date:',
+    variants: ['Take me here:', 'Best date energy:'],
+    pools: ['pool_date_plans', 'pool_date_vibes'],
+  },
+  // ── Work / Ambition ──
+  {
+    id: 'stem_grind',
+    text: 'Grind or chill?',
+    variants: ['Hustle mode:', 'Work ethic:'],
+    pools: ['pool_grind_work', 'pool_grind_goals'],
   },
   {
-    id: 'cl_15',
-    pair: 'cozy_lore',
-    text: 'Way you show love:',
-    optionA: { text: '🍪 "I baked this for you at 11pm"', emoji: '🍪', archetype: 'cozy' },
-    optionB: { text: '📎 "I found this article and thought of you"', emoji: '📎', archetype: 'lore' }
+    id: 'stem_main_quest',
+    text: 'Main quest or side quest?',
+    variants: ['Priority check:', 'What matters more?'],
+    pools: ['pool_quest_life', 'pool_quest_goals'],
+  },
+  // ── Culture / Taste ──
+  {
+    id: 'stem_era',
+    text: 'What era are you in?',
+    variants: ['Current era:', 'Your chapter:'],
+    pools: ['pool_era_life', 'pool_era_aesthetic'],
   },
   {
-    id: 'cl_16',
-    pair: 'cozy_lore',
-    text: 'What keeps you up at 2am:',
-    optionA: { text: '💭 Overthinking a conversation from years ago', emoji: '💭', archetype: 'cozy' },
-    optionB: { text: '📺 One more episode / one more chapter', emoji: '📺', archetype: 'lore' }
+    id: 'stem_romanticize',
+    text: 'Romanticize this:',
+    variants: ['Make it aesthetic:', 'This but beautiful:'],
+    pools: ['pool_romanticize_mundane', 'pool_romanticize_chaos'],
   },
   {
-    id: 'cl_17',
-    pair: 'cozy_lore',
-    text: 'Comfort food order:',
-    optionA: { text: '🍲 Whatever reminds you of home', emoji: '🍲', archetype: 'cozy' },
-    optionB: { text: '🍕 The exact same order, no changes, ever', emoji: '🍕', archetype: 'lore' }
+    id: 'stem_core',
+    text: 'Your core?',
+    variants: ['___core:', 'Aesthetic:'],
+    pools: ['pool_core_aesthetic', 'pool_core_lifestyle'],
   },
   {
-    id: 'cl_18',
-    pair: 'cozy_lore',
-    text: 'Creative outlet:',
-    optionA: { text: '✍️ Journaling or making playlists', emoji: '✍️', archetype: 'cozy' },
-    optionB: { text: '🎨 Building worlds or making tier lists', emoji: '🎨', archetype: 'lore' }
-  }
+    id: 'stem_ratio',
+    text: 'W or L?',
+    variants: ['Win or loss?', 'Based or cringe?'],
+    pools: ['pool_wl_takes', 'pool_wl_choices', 'pool_wl_habits'],
+  },
 ];
 
-// ═══════════════════════════════════════════════════════════════════════════════════
-// PHASE 2: COMBO QUESTIONS (60)
-// Testing secondary archetype selection within established primary combinations
-// ═══════════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+// ANSWER POOLS (73)
+// ═══════════════════════════════════════════════════════════════════
 
-export const COMBO_QUESTIONS: ComboQuestion[] = [
-  // ─── Pulse Primary (20) ───
+export const ANSWER_POOLS: AnswerPool[] = [
 
-  // Pulse/Glow vs Pulse/Cozy
+  // ────────────────────────────────────────
+  // MUSIC (stem: better)
+  // ────────────────────────────────────────
   {
-    id: 'cpgpc_1',
-    matchup: 'pulse_glow_vs_pulse_cozy',
-    primary: 'pulse',
-    text: 'When you throw a party:',
-    optionA: { text: '🏆 Make it the most memorable night', emoji: '🏆', archetype: 'glow' },
-    optionB: { text: '💕 Create a space where everyone\'s included', emoji: '💕', archetype: 'cozy' }
-  },
-  {
-    id: 'cpgpc_2',
-    matchup: 'pulse_glow_vs_pulse_cozy',
-    primary: 'pulse',
-    text: 'Friend group grows because:',
-    optionA: { text: '📈 You\'re naturally the hub everyone orbits', emoji: '📈', archetype: 'glow' },
-    optionB: { text: '🌙 You deepen bonds with whoever shows', emoji: '🌙', archetype: 'cozy' }
-  },
-  {
-    id: 'cpgpc_3',
-    matchup: 'pulse_glow_vs_pulse_cozy',
-    primary: 'pulse',
-    text: 'Plans fall through. You:',
-    optionA: { text: '🔥 Rally for something bigger and better', emoji: '🔥', archetype: 'glow' },
-    optionB: { text: '🛋️ Pivot to cozy hangout with whoever\'s free', emoji: '🛋️', archetype: 'cozy' }
-  },
-  {
-    id: 'cpgpc_4',
-    matchup: 'pulse_glow_vs_pulse_cozy',
-    primary: 'pulse',
-    text: 'In group chats, you\'re usually:',
-    optionA: { text: '💬 Starting competitions or challenges', emoji: '💬', archetype: 'glow' },
-    optionB: { text: '✨ Keeping vibes warm and checking on people', emoji: '✨', archetype: 'cozy' }
-  },
-  {
-    id: 'cpgpc_5',
-    matchup: 'pulse_glow_vs_pulse_cozy',
-    primary: 'pulse',
-    text: 'Social event went well when:',
-    optionA: { text: '🎯 People leave saying "that was insane"', emoji: '🎯', archetype: 'glow' },
-    optionB: { text: '🤝 People leave feeling closer to each other', emoji: '🤝', archetype: 'cozy' }
+    id: 'pool_music_artists',
+    stemId: 'stem_better',
+    category: 'music',
+    label: 'Music artists',
+    options: [
+      { id: 'ma_1', text: 'Kendrick', emoji: '🎤', weights: w(0.3, 0.8, -0.1, 0.5) },
+      { id: 'ma_2', text: 'Charli XCX', emoji: '💿', weights: w(0.9, 0.2, 0.0, 0.3) },
+      { id: 'ma_3', text: 'Billie Eilish', emoji: '🖤', weights: w(0.0, -0.1, 0.7, 0.6) },
+      { id: 'ma_4', text: 'Tyler, the Creator', emoji: '🌺', weights: w(0.4, 0.3, 0.1, 0.9) },
+      { id: 'ma_5', text: 'Doja Cat', emoji: '🐱', weights: w(0.8, 0.4, 0.1, 0.2) },
+      { id: 'ma_6', text: 'Frank Ocean', emoji: '🌊', weights: w(-0.1, 0.0, 0.8, 0.7) },
+      { id: 'ma_7', text: 'Dua Lipa', emoji: '💃', weights: w(0.7, 0.5, 0.2, -0.1) },
+      { id: 'ma_8', text: 'Steve Lacy', emoji: '🎸', weights: w(0.2, 0.1, 0.6, 0.7) },
+      { id: 'ma_9', text: 'Taylor Swift', emoji: '🎶', weights: w(0.4, 0.2, 0.7, 0.2) },
+      { id: 'ma_10', text: 'Chappell Roan', emoji: '💋', weights: w(0.7, 0.1, 0.3, 0.5) },
+      { id: 'ma_11', text: 'SZA', emoji: '🦋', weights: w(0.2, 0.0, 0.8, 0.4) },
+      { id: 'ma_12', text: 'Bad Bunny', emoji: '🐰', weights: w(0.8, 0.3, 0.1, 0.1) },
+      { id: 'ma_13', text: 'Hozier', emoji: '🍃', weights: w(-0.1, 0.0, 0.6, 0.8) },
+      { id: 'ma_14', text: 'Ice Spice', emoji: '🧊', weights: w(0.9, 0.3, 0.0, 0.0) },
+      { id: 'ma_15', text: 'Radiohead', emoji: '📻', weights: w(-0.2, 0.1, 0.3, 0.9) },
+      { id: 'ma_16', text: 'Beyoncé', emoji: '👑', weights: w(0.5, 0.7, 0.2, 0.1) },
+    ],
   },
 
-  // Pulse/Glow vs Pulse/Lore
+  // ────────────────────────────────────────
+  // TV/FILM (stem: better)
+  // ────────────────────────────────────────
   {
-    id: 'cpgpl_1',
-    matchup: 'pulse_glow_vs_pulse_lore',
-    primary: 'pulse',
-    text: 'You find something cool. Next:',
-    optionA: { text: '🏅 Master it faster than your friends', emoji: '🏅', archetype: 'glow' },
-    optionB: { text: '🎤 Spend hours hyping everyone about it', emoji: '🎤', archetype: 'lore' }
-  },
-  {
-    id: 'cpgpl_2',
-    matchup: 'pulse_glow_vs_pulse_lore',
-    primary: 'pulse',
-    text: 'In a scene, what matters most:',
-    optionA: { text: '🥇 Being known as one of the best', emoji: '🥇', archetype: 'glow' },
-    optionB: { text: '🎭 Getting more people into it', emoji: '🎭', archetype: 'lore' }
-  },
-  {
-    id: 'cpgpl_3',
-    matchup: 'pulse_glow_vs_pulse_lore',
-    primary: 'pulse',
-    text: 'Someone disagrees with your take:',
-    optionA: { text: '⚡ Debate until you win', emoji: '⚡', archetype: 'glow' },
-    optionB: { text: '💫 Passionately explain why you love it', emoji: '💫', archetype: 'lore' }
-  },
-  {
-    id: 'cpgpl_4',
-    matchup: 'pulse_glow_vs_pulse_lore',
-    primary: 'pulse',
-    text: 'Your social currency is:',
-    optionA: { text: '🚀 Being first and being the best', emoji: '🚀', archetype: 'glow' },
-    optionB: { text: '🔔 Having the best recommendations', emoji: '🔔', archetype: 'lore' }
-  },
-  {
-    id: 'cpgpl_5',
-    matchup: 'pulse_glow_vs_pulse_lore',
-    primary: 'pulse',
-    text: 'Better flex:',
-    optionA: { text: '🎖️ Being recognized as elite at something', emoji: '🎖️', archetype: 'glow' },
-    optionB: { text: '🎪 Converting someone into a lifelong fan', emoji: '🎪', archetype: 'lore' }
+    id: 'pool_shows_movies',
+    stemId: 'stem_better',
+    category: 'tv_film',
+    label: 'Shows and movies',
+    options: [
+      { id: 'sm_1', text: 'Love Island', emoji: '🏝️', weights: w(0.7, 0.2, 0.5, -0.3) },
+      { id: 'sm_2', text: 'Squid Game', emoji: '🔴', weights: w(0.4, 0.6, -0.1, 0.5) },
+      { id: 'sm_3', text: 'Gilmore Girls', emoji: '☕', weights: w(0.0, -0.2, 0.9, 0.4) },
+      { id: 'sm_4', text: 'Black Mirror', emoji: '📱', weights: w(-0.1, 0.3, 0.0, 0.9) },
+      { id: 'sm_5', text: 'Euphoria', emoji: '✨', weights: w(0.6, 0.1, 0.4, 0.3) },
+      { id: 'sm_6', text: 'The Bear', emoji: '🐻', weights: w(0.1, 0.8, 0.3, 0.4) },
+      { id: 'sm_7', text: 'Studio Ghibli', emoji: '🌿', weights: w(-0.2, 0.0, 0.7, 0.8) },
+      { id: 'sm_8', text: 'Succession', emoji: '💰', weights: w(0.3, 0.7, -0.1, 0.6) },
+      { id: 'sm_9', text: 'Bridgerton', emoji: '💐', weights: w(0.4, 0.0, 0.8, 0.2) },
+      { id: 'sm_10', text: 'Stranger Things', emoji: '🔦', weights: w(0.5, 0.2, 0.3, 0.6) },
+      { id: 'sm_11', text: 'The White Lotus', emoji: '🌺', weights: w(0.3, 0.2, 0.1, 0.8) },
+      { id: 'sm_12', text: 'One Piece', emoji: '🏴‍☠️', weights: w(0.6, 0.4, 0.3, 0.5) },
+      { id: 'sm_13', text: 'Heartstopper', emoji: '💛', weights: w(0.0, 0.0, 0.9, 0.2) },
+      { id: 'sm_14', text: 'Last of Us', emoji: '🍄', weights: w(0.1, 0.5, 0.4, 0.7) },
+      { id: 'sm_15', text: 'RuPaul\'s Drag Race', emoji: '👠', weights: w(0.8, 0.2, 0.3, 0.1) },
+      { id: 'sm_16', text: 'Shogun', emoji: '⚔️', weights: w(0.0, 0.6, 0.1, 0.9) },
+    ],
   },
 
-  // Pulse/Cozy vs Pulse/Lore
+  // ────────────────────────────────────────
+  // GAMING (stem: better)
+  // ────────────────────────────────────────
   {
-    id: 'cppcpl_1',
-    matchup: 'pulse_cozy_vs_pulse_lore',
-    primary: 'pulse',
-    text: 'When introducing friends:',
-    optionA: { text: '🤗 Make sure they feel comfortable first', emoji: '🤗', archetype: 'cozy' },
-    optionB: { text: '🎬 Connect them over a shared obsession', emoji: '🎬', archetype: 'lore' }
-  },
-  {
-    id: 'cppcpl_2',
-    matchup: 'pulse_cozy_vs_pulse_lore',
-    primary: 'pulse',
-    text: 'At a social event, you\'re known for:',
-    optionA: { text: '💚 Pulling in the person on the edges', emoji: '💚', archetype: 'cozy' },
-    optionB: { text: '🌟 Getting everyone excited about your interests', emoji: '🌟', archetype: 'lore' }
-  },
-  {
-    id: 'cppcpl_3',
-    matchup: 'pulse_cozy_vs_pulse_lore',
-    primary: 'pulse',
-    text: 'Someone\'s having a rough week:',
-    optionA: { text: '🩹 Create a safe space and listen', emoji: '🩹', archetype: 'cozy' },
-    optionB: { text: '📖 Share something that helped you through it', emoji: '📖', archetype: 'lore' }
-  },
-  {
-    id: 'cppcpl_4',
-    matchup: 'pulse_cozy_vs_pulse_lore',
-    primary: 'pulse',
-    text: 'Building a friend group, you prioritize:',
-    optionA: { text: '🔥 Everyone feeling like they belong', emoji: '🔥', archetype: 'cozy' },
-    optionB: { text: '💭 Everyone getting each other\'s references', emoji: '💭', archetype: 'lore' }
-  },
-  {
-    id: 'cppcpl_5',
-    matchup: 'pulse_cozy_vs_pulse_lore',
-    primary: 'pulse',
-    text: 'Your group chat energy:',
-    optionA: { text: '🫂 Supportive - you remember everyone\'s stuff', emoji: '🫂', archetype: 'cozy' },
-    optionB: { text: '📢 Evangelical - always sharing finds', emoji: '📢', archetype: 'lore' }
+    id: 'pool_games',
+    stemId: 'stem_better',
+    category: 'gaming',
+    label: 'Games',
+    options: [
+      { id: 'gm_1', text: 'Fortnite', emoji: '🎮', weights: w(0.8, 0.4, 0.1, -0.1) },
+      { id: 'gm_2', text: 'Stardew Valley', emoji: '🌾', weights: w(-0.2, 0.1, 0.9, 0.4) },
+      { id: 'gm_3', text: 'Elden Ring', emoji: '⚔️', weights: w(0.1, 0.7, 0.0, 0.8) },
+      { id: 'gm_4', text: 'Mario Kart', emoji: '🏎️', weights: w(0.7, 0.3, 0.5, 0.0) },
+      { id: 'gm_5', text: 'Minecraft', emoji: '⛏️', weights: w(0.2, 0.2, 0.5, 0.7) },
+      { id: 'gm_6', text: 'FIFA/EA FC', emoji: '⚽', weights: w(0.5, 0.8, 0.2, -0.1) },
+      { id: 'gm_7', text: 'Animal Crossing', emoji: '🏝️', weights: w(0.1, -0.1, 0.9, 0.2) },
+      { id: 'gm_8', text: 'Baldur\'s Gate 3', emoji: '🐉', weights: w(0.0, 0.3, 0.2, 0.9) },
+    ],
   },
 
-  // ─── Glow Primary (20) ───
-
-  // Glow/Pulse vs Glow/Cozy
+  // ────────────────────────────────────────
+  // SOCIAL PLATFORMS (stem: better)
+  // ────────────────────────────────────────
   {
-    id: 'cggpgc_1',
-    matchup: 'glow_pulse_vs_glow_cozy',
-    primary: 'glow',
-    text: 'Self-improvement happens:',
-    optionA: { text: '👥 With a team pushing each other', emoji: '👥', archetype: 'pulse' },
-    optionB: { text: '🌱 At your own pace, consistently', emoji: '🌱', archetype: 'cozy' }
-  },
-  {
-    id: 'cggpgc_2',
-    matchup: 'glow_pulse_vs_glow_cozy',
-    primary: 'glow',
-    text: 'Progress looks like:',
-    optionA: { text: '📊 Everyone leveling up under your lead', emoji: '📊', archetype: 'pulse' },
-    optionB: { text: '📈 Quiet, steady growth you track privately', emoji: '📈', archetype: 'cozy' }
-  },
-  {
-    id: 'cggpgc_3',
-    matchup: 'glow_pulse_vs_glow_cozy',
-    primary: 'glow',
-    text: 'Goal gets tough. You:',
-    optionA: { text: '🎯 Rally your crew to push through', emoji: '🎯', archetype: 'pulse' },
-    optionB: { text: '🧘 Trust the process and stay the course', emoji: '🧘', archetype: 'cozy' }
-  },
-  {
-    id: 'cggpgc_4',
-    matchup: 'glow_pulse_vs_glow_cozy',
-    primary: 'glow',
-    text: 'When a friend struggles:',
-    optionA: { text: '🤝 Jump in to motivate and coordinate', emoji: '🤝', archetype: 'pulse' },
-    optionB: { text: '💭 Share what worked, give them space', emoji: '💭', archetype: 'cozy' }
-  },
-  {
-    id: 'cggpgc_5',
-    matchup: 'glow_pulse_vs_glow_cozy',
-    primary: 'glow',
-    text: 'Celebrating wins looks like:',
-    optionA: { text: '🏆 Making sure the team knows what they achieved', emoji: '🏆', archetype: 'pulse' },
-    optionB: { text: '🌿 Feeling grateful for the growth itself', emoji: '🌿', archetype: 'cozy' }
+    id: 'pool_social_platforms',
+    stemId: 'stem_better',
+    category: 'tiktok_genz',
+    label: 'Social platforms',
+    options: [
+      { id: 'sp_1', text: 'TikTok', emoji: '📱', weights: w(0.7, 0.3, 0.2, 0.3) },
+      { id: 'sp_2', text: 'BeReal', emoji: '📸', weights: w(0.3, 0.1, 0.8, 0.0) },
+      { id: 'sp_3', text: 'Letterboxd', emoji: '🎬', weights: w(0.0, 0.1, 0.2, 0.9) },
+      { id: 'sp_4', text: 'Strava', emoji: '🏃', weights: w(0.2, 0.9, 0.0, 0.2) },
+      { id: 'sp_5', text: 'Pinterest', emoji: '📌', weights: w(0.1, 0.2, 0.6, 0.7) },
+      { id: 'sp_6', text: 'Discord', emoji: '💬', weights: w(0.4, 0.1, 0.3, 0.8) },
+    ],
   },
 
-  // Glow/Pulse vs Glow/Lore
+  // ────────────────────────────────────────
+  // VIBES (stem: better)
+  // ────────────────────────────────────────
   {
-    id: 'cggpgl_1',
-    matchup: 'glow_pulse_vs_glow_lore',
-    primary: 'glow',
-    text: 'Learning something new, you:',
-    optionA: { text: '👨‍🏫 Get others to learn with you', emoji: '👨‍🏫', archetype: 'pulse' },
-    optionB: { text: '📚 Deep dive alone until mastered', emoji: '📚', archetype: 'lore' }
-  },
-  {
-    id: 'cggpgl_2',
-    matchup: 'glow_pulse_vs_glow_lore',
-    primary: 'glow',
-    text: 'Skill-building motivates you because:',
-    optionA: { text: '🎖️ Want to lead and inspire others', emoji: '🎖️', archetype: 'pulse' },
-    optionB: { text: '🔬 Understanding the mechanics is the reward', emoji: '🔬', archetype: 'lore' }
-  },
-  {
-    id: 'cggpgl_3',
-    matchup: 'glow_pulse_vs_glow_lore',
-    primary: 'glow',
-    text: 'Ideal project involves:',
-    optionA: { text: '🏗️ Delegating and coordinating a team', emoji: '🏗️', archetype: 'pulse' },
-    optionB: { text: '🎯 Perfecting every detail yourself', emoji: '🎯', archetype: 'lore' }
-  },
-  {
-    id: 'cggpgl_4',
-    matchup: 'glow_pulse_vs_glow_lore',
-    primary: 'glow',
-    text: 'When you get really into something:',
-    optionA: { text: '📣 You become the expert people consult', emoji: '📣', archetype: 'pulse' },
-    optionB: { text: '📖 Study it obsessively - meta and all', emoji: '📖', archetype: 'lore' }
-  },
-  {
-    id: 'cggpgl_5',
-    matchup: 'glow_pulse_vs_glow_lore',
-    primary: 'glow',
-    text: 'Success feels most like:',
-    optionA: { text: '👑 Others rallying around your vision', emoji: '👑', archetype: 'pulse' },
-    optionB: { text: '🏅 Knowing you\'re genuinely the best', emoji: '🏅', archetype: 'lore' }
+    id: 'pool_vibes',
+    stemId: 'stem_better',
+    category: 'worldviews',
+    label: 'Vibes',
+    options: [
+      { id: 'vb_1', text: 'Chaos', emoji: '🌪️', weights: w(0.9, 0.3, -0.3, 0.2) },
+      { id: 'vb_2', text: 'Peace', emoji: '🕊️', weights: w(-0.3, 0.0, 0.9, 0.3) },
+      { id: 'vb_3', text: 'Ambition', emoji: '🔥', weights: w(0.3, 0.9, 0.0, 0.3) },
+      { id: 'vb_4', text: 'Curiosity', emoji: '🔍', weights: w(0.1, 0.2, 0.2, 0.9) },
+    ],
   },
 
-  // Glow/Cozy vs Glow/Lore
+  // ────────────────────────────────────────
+  // DATE SPOTS (stem: better)
+  // ────────────────────────────────────────
   {
-    id: 'cggcgl_1',
-    matchup: 'glow_cozy_vs_glow_lore',
-    primary: 'glow',
-    text: 'Your learning style:',
-    optionA: { text: '🧩 Build habits that feel sustainable', emoji: '🧩', archetype: 'cozy' },
-    optionB: { text: '🔍 Analyze every system and framework', emoji: '🔍', archetype: 'lore' }
-  },
-  {
-    id: 'cggcgl_2',
-    matchup: 'glow_cozy_vs_glow_lore',
-    primary: 'glow',
-    text: 'When you hit a plateau:',
-    optionA: { text: '🌊 Adjust and find new joy', emoji: '🌊', archetype: 'cozy' },
-    optionB: { text: '🧬 Study the meta to optimize', emoji: '🧬', archetype: 'lore' }
-  },
-  {
-    id: 'cggcgl_3',
-    matchup: 'glow_cozy_vs_glow_lore',
-    primary: 'glow',
-    text: 'Work ethic is known for:',
-    optionA: { text: '🌱 Consistency and care in what you touch', emoji: '🌱', archetype: 'cozy' },
-    optionB: { text: '⚙️ Technical excellence and precision', emoji: '⚙️', archetype: 'lore' }
-  },
-  {
-    id: 'cggcgl_4',
-    matchup: 'glow_cozy_vs_glow_lore',
-    primary: 'glow',
-    text: 'Mastery means:',
-    optionA: { text: '💚 Growing aligned with your values', emoji: '💚', archetype: 'cozy' },
-    optionB: { text: '🏆 Complete understanding of the system', emoji: '🏆', archetype: 'lore' }
-  },
-  {
-    id: 'cggcgl_5',
-    matchup: 'glow_cozy_vs_glow_lore',
-    primary: 'glow',
-    text: 'Self-improvement notes are mostly:',
-    optionA: { text: '📝 Reflections, gratitude, intentions', emoji: '📝', archetype: 'cozy' },
-    optionB: { text: '📊 Data, benchmarks, optimization', emoji: '📊', archetype: 'lore' }
+    id: 'pool_date_spots',
+    stemId: 'stem_better',
+    category: 'dating_romance',
+    label: 'Date spots',
+    options: [
+      { id: 'ds_1', text: 'Rooftop bar', emoji: '🍸', weights: w(0.8, 0.3, 0.2, 0.0) },
+      { id: 'ds_2', text: 'Hiking trail', emoji: '🥾', weights: w(0.1, 0.9, 0.2, 0.3) },
+      { id: 'ds_3', text: 'Cozy café', emoji: '☕', weights: w(0.0, 0.0, 0.9, 0.3) },
+      { id: 'ds_4', text: 'Museum after dark', emoji: '🖼️', weights: w(0.2, 0.1, 0.3, 0.9) },
+      { id: 'ds_5', text: 'Street food market', emoji: '🍜', weights: w(0.6, 0.4, 0.4, 0.5) },
+      { id: 'ds_6', text: 'Concert', emoji: '🎵', weights: w(0.8, 0.2, 0.3, 0.5) },
+    ],
   },
 
-  // ─── Cozy Primary (20) ───
-
-  // Cozy/Pulse vs Cozy/Glow
+  // ────────────────────────────────────────
+  // FLEX - LIFE (stem: flex)
+  // ────────────────────────────────────────
   {
-    id: 'cccpcg_1',
-    matchup: 'cozy_pulse_vs_cozy_glow',
-    primary: 'cozy',
-    text: 'Ideal gathering has:',
-    optionA: { text: '🎉 Energy, laughter, spontaneity', emoji: '🎉', archetype: 'pulse' },
-    optionB: { text: '🕯️ Intention, depth, real conversation', emoji: '🕯️', archetype: 'glow' }
-  },
-  {
-    id: 'cccpcg_2',
-    matchup: 'cozy_pulse_vs_cozy_glow',
-    primary: 'cozy',
-    text: 'Comfort means:',
-    optionA: { text: '👫 Surrounded by energizing people', emoji: '👫', archetype: 'pulse' },
-    optionB: { text: '🛁 Rituals that nourish you daily', emoji: '🛁', archetype: 'glow' }
-  },
-  {
-    id: 'cccpcg_3',
-    matchup: 'cozy_pulse_vs_cozy_glow',
-    primary: 'cozy',
-    text: 'When you host, the goal:',
-    optionA: { text: '✨ People leave energized and connected', emoji: '✨', archetype: 'pulse' },
-    optionB: { text: '🏡 Everyone feels truly seen and safe', emoji: '🏡', archetype: 'glow' }
-  },
-  {
-    id: 'cccpcg_4',
-    matchup: 'cozy_pulse_vs_cozy_glow',
-    primary: 'cozy',
-    text: 'Building closeness, you:',
-    optionA: { text: '🔗 Get people talking and laughing', emoji: '🔗', archetype: 'pulse' },
-    optionB: { text: '💌 Create quiet moments for vulnerability', emoji: '💌', archetype: 'glow' }
-  },
-  {
-    id: 'cccpcg_5',
-    matchup: 'cozy_pulse_vs_cozy_glow',
-    primary: 'cozy',
-    text: 'Perfect evening involves:',
-    optionA: { text: '🌙 Spontaneous adventures with close friends', emoji: '🌙', archetype: 'pulse' },
-    optionB: { text: '📖 Deep one-on-one and intentional time', emoji: '📖', archetype: 'glow' }
+    id: 'pool_flex_life',
+    stemId: 'stem_flex',
+    category: 'worldviews',
+    label: 'Life flexes',
+    options: [
+      { id: 'fl_1', text: 'Knowing everyone at the party', emoji: '👑', weights: w(0.9, 0.2, 0.3, -0.1) },
+      { id: 'fl_2', text: '5am gym before work', emoji: '💪', weights: w(0.0, 0.9, 0.0, 0.1) },
+      { id: 'fl_3', text: 'Your friend group trusts you with everything', emoji: '🤝', weights: w(0.1, 0.1, 0.9, 0.1) },
+      { id: 'fl_4', text: 'Being the person who always has the reference', emoji: '🧠', weights: w(0.0, 0.2, 0.1, 0.9) },
+      { id: 'fl_5', text: 'Never needing an alarm clock', emoji: '⏰', weights: w(-0.1, 0.8, 0.3, 0.1) },
+      { id: 'fl_6', text: 'Your Spotify Wrapped is actually interesting', emoji: '🎧', weights: w(0.4, 0.0, 0.2, 0.8) },
+    ],
   },
 
-  // Cozy/Pulse vs Cozy/Lore
+  // ────────────────────────────────────────
+  // FLEX - SOCIAL (stem: flex)
+  // ────────────────────────────────────────
   {
-    id: 'cccpcl_1',
-    matchup: 'cozy_pulse_vs_cozy_lore',
-    primary: 'cozy',
-    text: 'When you recommend something:',
-    optionA: { text: '🎪 Get excited and want everyone to try', emoji: '🎪', archetype: 'pulse' },
-    optionB: { text: '🎨 Thoughtfully match it to the person', emoji: '🎨', archetype: 'lore' }
-  },
-  {
-    id: 'cccpcl_2',
-    matchup: 'cozy_pulse_vs_cozy_lore',
-    primary: 'cozy',
-    text: 'Your taste is defined by:',
-    optionA: { text: '👥 Loving things that bring people together', emoji: '👥', archetype: 'pulse' },
-    optionB: { text: '📐 Having refined, discerning preferences', emoji: '📐', archetype: 'lore' }
-  },
-  {
-    id: 'cccpcl_3',
-    matchup: 'cozy_pulse_vs_cozy_lore',
-    primary: 'cozy',
-    text: 'Cozy night in looks like:',
-    optionA: { text: '🥳 Group hangout with snacks and vibes', emoji: '🥳', archetype: 'pulse' },
-    optionB: { text: '🎬 Curated solo experience - perfect movie', emoji: '🎬', archetype: 'lore' }
-  },
-  {
-    id: 'cccpcl_4',
-    matchup: 'cozy_pulse_vs_cozy_lore',
-    primary: 'cozy',
-    text: 'When sharing something you love:',
-    optionA: { text: '🎤 Tell the story with infectious energy', emoji: '🎤', archetype: 'pulse' },
-    optionB: { text: '📚 Explain exactly why it\'s brilliant', emoji: '📚', archetype: 'lore' }
-  },
-  {
-    id: 'cccpcl_5',
-    matchup: 'cozy_pulse_vs_cozy_lore',
-    primary: 'cozy',
-    text: 'Bond with people over:',
-    optionA: { text: '🤗 Shared warmth and making memories', emoji: '🤗', archetype: 'pulse' },
-    optionB: { text: '🖼️ Shared taste and discovering hidden gems', emoji: '🖼️', archetype: 'lore' }
+    id: 'pool_flex_social',
+    stemId: 'stem_flex',
+    category: 'friendships',
+    label: 'Social flexes',
+    options: [
+      { id: 'fs_1', text: 'Turning strangers into friends in 10 minutes', emoji: '🤙', weights: w(0.9, 0.2, 0.4, -0.1) },
+      { id: 'fs_2', text: 'Your group always does what you suggest', emoji: '📣', weights: w(0.4, 0.8, 0.1, 0.2) },
+      { id: 'fs_3', text: 'People tell you things they don\'t tell anyone', emoji: '🔒', weights: w(0.0, 0.0, 0.9, 0.3) },
+      { id: 'fs_4', text: 'You predicted that trend 6 months ago', emoji: '🔮', weights: w(0.2, 0.2, 0.0, 0.9) },
+    ],
   },
 
-  // Cozy/Glow vs Cozy/Lore
+  // ────────────────────────────────────────
+  // FLEX - SKILLS (stem: flex)
+  // ────────────────────────────────────────
   {
-    id: 'cccgcl_1',
-    matchup: 'cozy_glow_vs_cozy_lore',
-    primary: 'cozy',
-    text: 'Your growth journey is:',
-    optionA: { text: '🌿 Holistic - body, mind, relationships', emoji: '🌿', archetype: 'glow' },
-    optionB: { text: '📖 Intellectual - subjects that fascinate you', emoji: '📖', archetype: 'lore' }
-  },
-  {
-    id: 'cccgcl_2',
-    matchup: 'cozy_glow_vs_cozy_lore',
-    primary: 'cozy',
-    text: 'Comfort comes from:',
-    optionA: { text: '🧘 Aligned living and mindful practices', emoji: '🧘', archetype: 'glow' },
-    optionB: { text: '🎭 Appreciating beautiful, meaningful things', emoji: '🎭', archetype: 'lore' }
-  },
-  {
-    id: 'cccgcl_3',
-    matchup: 'cozy_glow_vs_cozy_lore',
-    primary: 'cozy',
-    text: 'Discover something new:',
-    optionA: { text: '💚 See how it fits into your values', emoji: '💚', archetype: 'glow' },
-    optionB: { text: '👁️ Analyze and appreciate its artistry', emoji: '👁️', archetype: 'lore' }
-  },
-  {
-    id: 'cccgcl_4',
-    matchup: 'cozy_glow_vs_cozy_lore',
-    primary: 'cozy',
-    text: 'Depth means:',
-    optionA: { text: '🌱 Understanding yourself more fully', emoji: '🌱', archetype: 'glow' },
-    optionB: { text: '🔬 Understanding how things really work', emoji: '🔬', archetype: 'lore' }
-  },
-  {
-    id: 'cccgcl_5',
-    matchup: 'cozy_glow_vs_cozy_lore',
-    primary: 'cozy',
-    text: 'Building long-term:',
-    optionA: { text: '🏛️ A life that feels intentional and grounded', emoji: '🏛️', archetype: 'glow' },
-    optionB: { text: '🗂️ A refined collection and worldview', emoji: '🗂️', archetype: 'lore' }
+    id: 'pool_flex_skills',
+    stemId: 'stem_flex',
+    category: 'work_school',
+    label: 'Skill flexes',
+    options: [
+      { id: 'fk_1', text: 'Can talk to literally anyone', emoji: '🗣️', weights: w(0.9, 0.3, 0.3, -0.2) },
+      { id: 'fk_2', text: 'Finishing what you start', emoji: '✅', weights: w(-0.1, 0.9, 0.2, 0.3) },
+      { id: 'fk_3', text: 'Making people feel seen', emoji: '👁️', weights: w(0.1, 0.0, 0.9, 0.2) },
+      { id: 'fk_4', text: 'Having a take on everything', emoji: '💡', weights: w(0.3, 0.3, -0.1, 0.9) },
+    ],
   },
 
-  // ─── Lore Primary (20) ───
-
-  // Lore/Pulse vs Lore/Glow
+  // ────────────────────────────────────────
+  // CRINGE - SOCIAL (stem: cringe)
+  // ────────────────────────────────────────
   {
-    id: 'cllplg_1',
-    matchup: 'lore_pulse_vs_lore_glow',
-    primary: 'lore',
-    text: 'Deep in your thing:',
-    optionA: { text: '🎬 Community and shared experience matter most', emoji: '🎬', archetype: 'pulse' },
-    optionB: { text: '📋 Getting every detail perfect matters most', emoji: '📋', archetype: 'glow' }
-  },
-  {
-    id: 'cllplg_2',
-    matchup: 'lore_pulse_vs_lore_glow',
-    primary: 'lore',
-    text: 'Obsessions fueled by:',
-    optionA: { text: '🎪 Energy of doing it together', emoji: '🎪', archetype: 'pulse' },
-    optionB: { text: '🏆 Drive to master and complete it', emoji: '🏆', archetype: 'glow' }
-  },
-  {
-    id: 'cllplg_3',
-    matchup: 'lore_pulse_vs_lore_glow',
-    primary: 'lore',
-    text: 'In your niche, known as:',
-    optionA: { text: '🎤 The hype person who runs events', emoji: '🎤', archetype: 'pulse' },
-    optionB: { text: '🧠 The one who knows EVERYTHING', emoji: '🧠', archetype: 'glow' }
-  },
-  {
-    id: 'cllplg_4',
-    matchup: 'lore_pulse_vs_lore_glow',
-    primary: 'lore',
-    text: 'New series drops. You:',
-    optionA: { text: '👥 Start a watch party immediately', emoji: '👥', archetype: 'pulse' },
-    optionB: { text: '📊 Create a comprehensive guide and tier', emoji: '📊', archetype: 'glow' }
-  },
-  {
-    id: 'cllplg_5',
-    matchup: 'lore_pulse_vs_lore_glow',
-    primary: 'lore',
-    text: 'Ultimate flex:',
-    optionA: { text: '🌟 Getting people obsessed through your energy', emoji: '🌟', archetype: 'pulse' },
-    optionB: { text: '💯 Having 100%\'d it harder than anyone', emoji: '💯', archetype: 'glow' }
+    id: 'pool_cringe_social',
+    stemId: 'stem_cringe',
+    category: 'tiktok_genz',
+    label: 'Social cringe',
+    options: [
+      { id: 'cs_1', text: 'Making everything a competition', emoji: '🏆', weights: w(0.3, 0.8, 0.0, 0.1) },
+      { id: 'cs_2', text: 'Posting every meal', emoji: '📷', weights: w(0.7, 0.1, 0.3, 0.0) },
+      { id: 'cs_3', text: 'Trauma dumping on the first hangout', emoji: '😬', weights: w(0.1, -0.1, 0.6, 0.3) },
+      { id: 'cs_4', text: 'Correcting people at parties', emoji: '🤓', weights: w(-0.2, 0.2, -0.1, 0.7) },
+      { id: 'cs_5', text: 'Being on your phone the whole dinner', emoji: '📱', weights: w(0.5, 0.0, -0.3, 0.4) },
+    ],
   },
 
-  // Lore/Pulse vs Lore/Cozy
+  // ────────────────────────────────────────
+  // CRINGE - DATING (stem: cringe)
+  // ────────────────────────────────────────
   {
-    id: 'cllplc_1',
-    matchup: 'lore_pulse_vs_lore_cozy',
-    primary: 'lore',
-    text: 'Favorite fandom moment:',
-    optionA: { text: '🎉 Live event where everyone loses it', emoji: '🎉', archetype: 'pulse' },
-    optionB: { text: '💫 Scene that made you feel deeply understood', emoji: '💫', archetype: 'cozy' }
-  },
-  {
-    id: 'cllplc_2',
-    matchup: 'lore_pulse_vs_lore_cozy',
-    primary: 'lore',
-    text: 'When sharing lore, you:',
-    optionA: { text: '🎤 Tell the story with maximum hype', emoji: '🎤', archetype: 'pulse' },
-    optionB: { text: '📖 Explore what it means on deeper level', emoji: '📖', archetype: 'cozy' }
-  },
-  {
-    id: 'cllplc_3',
-    matchup: 'lore_pulse_vs_lore_cozy',
-    primary: 'lore',
-    text: 'Community means:',
-    optionA: { text: '🔥 People bonding over shared energy and activity', emoji: '🔥', archetype: 'pulse' },
-    optionB: { text: '💚 People finding comfort in shared understanding', emoji: '💚', archetype: 'cozy' }
-  },
-  {
-    id: 'cllplc_4',
-    matchup: 'lore_pulse_vs_lore_cozy',
-    primary: 'lore',
-    text: 'Niche obsession gives you:',
-    optionA: { text: '⚡ Connection and belonging through events', emoji: '⚡', archetype: 'pulse' },
-    optionB: { text: '🏡 Solace and a place to feel at home', emoji: '🏡', archetype: 'cozy' }
-  },
-  {
-    id: 'cllplc_5',
-    matchup: 'lore_pulse_vs_lore_cozy',
-    primary: 'lore',
-    text: 'When a friend needs help:',
-    optionA: { text: '🎬 Offer escapism through group activity', emoji: '🎬', archetype: 'pulse' },
-    optionB: { text: '💌 Share the story or media that helped', emoji: '💌', archetype: 'cozy' }
+    id: 'pool_cringe_dating',
+    stemId: 'stem_cringe',
+    category: 'dating_romance',
+    label: 'Dating cringe',
+    options: [
+      { id: 'cd_1', text: 'Mirror selfies with flash', emoji: '🤳', weights: w(0.6, 0.3, -0.2, -0.1) },
+      { id: 'cd_2', text: '"I\'m not like other people"', emoji: '🙄', weights: w(0.0, 0.2, 0.3, 0.6) },
+      { id: 'cd_3', text: 'Love bombing on day one', emoji: '💕', weights: w(0.4, 0.1, 0.5, -0.1) },
+      { id: 'cd_4', text: 'Only talking about your grind', emoji: '📈', weights: w(0.1, 0.7, -0.2, 0.2) },
+      { id: 'cd_5', text: 'Playing hard to get in 2026', emoji: '🏃', weights: w(0.5, 0.3, -0.2, 0.0) },
+    ],
   },
 
-  // Lore/Glow vs Lore/Cozy
+  // ────────────────────────────────────────
+  // CRINGE - ONLINE (stem: cringe)
+  // ────────────────────────────────────────
   {
-    id: 'cllglc_1',
-    matchup: 'lore_glow_vs_lore_cozy',
-    primary: 'lore',
-    text: 'Fandom engagement is:',
-    optionA: { text: '🏆 Competitive - who knows it best?', emoji: '🏆', archetype: 'glow' },
-    optionB: { text: '🌿 Reflective - what does it teach you?', emoji: '🌿', archetype: 'cozy' }
+    id: 'pool_cringe_online',
+    stemId: 'stem_cringe',
+    category: 'tiktok_genz',
+    label: 'Online cringe',
+    options: [
+      { id: 'co_1', text: 'LinkedIn hustle posts', emoji: '💼', weights: w(0.2, 0.7, -0.1, 0.0) },
+      { id: 'co_2', text: 'Subtweeting', emoji: '🐦', weights: w(0.6, 0.0, 0.2, 0.3) },
+      { id: 'co_3', text: 'Posting your therapy homework', emoji: '📝', weights: w(0.0, 0.1, 0.6, 0.2) },
+      { id: 'co_4', text: 'Rating everything on Letterboxd', emoji: '⭐', weights: w(-0.1, 0.1, 0.1, 0.8) },
+    ],
   },
+
+  // ────────────────────────────────────────
+  // RED FLAGS - DATING (stem: red_flag)
+  // ────────────────────────────────────────
   {
-    id: 'cllglc_2',
-    matchup: 'lore_glow_vs_lore_cozy',
-    primary: 'lore',
-    text: 'Your collections are:',
-    optionA: { text: '📊 Meticulously organized and optimized', emoji: '📊', archetype: 'glow' },
-    optionB: { text: '💭 Chosen for their emotional resonance', emoji: '💭', archetype: 'cozy' }
+    id: 'pool_redflag_dating',
+    stemId: 'stem_red_flag',
+    category: 'dating_romance',
+    label: 'Dating red flags',
+    options: [
+      { id: 'rd_1', text: 'They never ask you questions back', emoji: '🚩', weights: w(0.5, 0.3, -0.3, 0.0) },
+      { id: 'rd_2', text: 'They cancel plans but post stories', emoji: '🚩', weights: w(0.6, 0.1, 0.0, 0.1) },
+      { id: 'rd_3', text: 'They say "I don\'t do labels"', emoji: '🚩', weights: w(0.4, -0.1, -0.3, 0.2) },
+      { id: 'rd_4', text: 'They have zero hobbies', emoji: '🚩', weights: w(0.2, -0.2, 0.1, -0.4) },
+      { id: 'rd_5', text: 'They keep score in the relationship', emoji: '🚩', weights: w(0.0, 0.6, -0.3, 0.2) },
+      { id: 'rd_6', text: 'They make fun of things you like', emoji: '🚩', weights: w(0.1, 0.2, -0.4, 0.3) },
+    ],
   },
+
+  // ────────────────────────────────────────
+  // RED FLAGS - FRIENDSHIP (stem: red_flag)
+  // ────────────────────────────────────────
   {
-    id: 'cllglc_3',
-    matchup: 'lore_glow_vs_lore_cozy',
-    primary: 'lore',
-    text: 'Plot twist hits. You:',
-    optionA: { text: '🔎 Immediately theorize and analyze', emoji: '🔎', archetype: 'glow' },
-    optionB: { text: '✨ Sit with how it makes you feel', emoji: '✨', archetype: 'cozy' }
+    id: 'pool_redflag_friendship',
+    stemId: 'stem_red_flag',
+    category: 'friendships',
+    label: 'Friendship red flags',
+    options: [
+      { id: 'rf_1', text: 'Only texts when they need something', emoji: '🚩', weights: w(0.3, 0.5, -0.3, 0.0) },
+      { id: 'rf_2', text: 'Makes everything about themselves', emoji: '🚩', weights: w(0.6, 0.2, -0.2, 0.0) },
+      { id: 'rf_3', text: 'Never remembers what you told them', emoji: '🚩', weights: w(0.2, 0.0, -0.4, -0.2) },
+      { id: 'rf_4', text: 'Always "too busy" but never for them', emoji: '🚩', weights: w(0.1, 0.5, -0.2, 0.0) },
+      { id: 'rf_5', text: 'Talks about you differently behind your back', emoji: '🚩', weights: w(0.4, 0.1, -0.3, 0.1) },
+    ],
   },
+
+  // ────────────────────────────────────────
+  // RED FLAGS - VIBES (stem: red_flag)
+  // ────────────────────────────────────────
   {
-    id: 'cllglc_4',
-    matchup: 'lore_glow_vs_lore_cozy',
-    primary: 'lore',
-    text: 'Expertise comes from:',
-    optionA: { text: '📚 Studying guides, meta, obscure trivia', emoji: '📚', archetype: 'glow' },
-    optionB: { text: '🎬 Rewatching, rereading, connecting deeply', emoji: '🎬', archetype: 'cozy' }
+    id: 'pool_redflag_vibes',
+    stemId: 'stem_red_flag',
+    category: 'worldviews',
+    label: 'General red flags',
+    options: [
+      { id: 'rv_1', text: 'No close friends, only "connections"', emoji: '🚩', weights: w(0.5, 0.3, -0.5, 0.0) },
+      { id: 'rv_2', text: 'Can\'t be alone for five minutes', emoji: '🚩', weights: w(0.6, 0.0, 0.1, -0.4) },
+      { id: 'rv_3', text: 'Never wrong, always a victim', emoji: '🚩', weights: w(0.1, 0.2, 0.0, 0.1) },
+      { id: 'rv_4', text: 'Judges people for their taste', emoji: '🚩', weights: w(-0.1, 0.1, -0.2, 0.6) },
+    ],
   },
+
+  // ────────────────────────────────────────
+  // GREEN FLAGS - DATING (stem: green_flag)
+  // ────────────────────────────────────────
   {
-    id: 'cllglc_5',
-    matchup: 'lore_glow_vs_lore_cozy',
-    primary: 'lore',
-    text: 'What draws you to your obsession:',
-    optionA: { text: '🎯 Satisfaction of mastery and completion', emoji: '🎯', archetype: 'glow' },
-    optionB: { text: '💫 Emotional wisdom it offers', emoji: '💫', archetype: 'cozy' }
-  }
+    id: 'pool_greenflag_dating',
+    stemId: 'stem_green_flag',
+    category: 'dating_romance',
+    label: 'Dating green flags',
+    options: [
+      { id: 'gd_1', text: 'They hype you up in front of their friends', emoji: '💚', weights: w(0.7, 0.3, 0.3, 0.0) },
+      { id: 'gd_2', text: 'They have their own goals and chase them', emoji: '💚', weights: w(0.0, 0.9, 0.1, 0.3) },
+      { id: 'gd_3', text: 'They remember the small things', emoji: '💚', weights: w(0.0, 0.1, 0.9, 0.2) },
+      { id: 'gd_4', text: 'They send you stuff you\'d actually like', emoji: '💚', weights: w(0.1, 0.1, 0.4, 0.8) },
+      { id: 'gd_5', text: 'They plan actual dates, not just "hang"', emoji: '💚', weights: w(0.3, 0.6, 0.4, 0.1) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // GREEN FLAGS - FRIENDSHIP (stem: green_flag)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_greenflag_friendship',
+    stemId: 'stem_green_flag',
+    category: 'friendships',
+    label: 'Friendship green flags',
+    options: [
+      { id: 'gf_1', text: 'Always down for a spontaneous plan', emoji: '💚', weights: w(0.9, 0.2, 0.2, -0.1) },
+      { id: 'gf_2', text: 'Shows up when it actually matters', emoji: '💚', weights: w(0.1, 0.7, 0.5, 0.1) },
+      { id: 'gf_3', text: 'Comfortable silence together', emoji: '💚', weights: w(-0.2, 0.0, 0.8, 0.5) },
+      { id: 'gf_4', text: 'Shares random articles/memes that remind them of you', emoji: '💚', weights: w(0.2, 0.0, 0.4, 0.8) },
+      { id: 'gf_5', text: 'Calls you out when you\'re wrong', emoji: '💚', weights: w(0.2, 0.7, 0.2, 0.3) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // HOT TAKES - LIFE (stem: hot_take)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_hottake_life',
+    stemId: 'stem_hot_take',
+    category: 'worldviews',
+    label: 'Life hot takes',
+    options: [
+      { id: 'hl_1', text: 'Most "self care" is just avoiding your problems', emoji: '🔥', weights: w(0.2, 0.7, -0.3, 0.4) },
+      { id: 'hl_2', text: 'Your 20s are for chaos, not planning', emoji: '🔥', weights: w(0.8, -0.2, 0.2, 0.0) },
+      { id: 'hl_3', text: 'Loyalty matters more than honesty', emoji: '🔥', weights: w(0.3, 0.0, 0.8, -0.2) },
+      { id: 'hl_4', text: 'Being obsessive is a strength', emoji: '🔥', weights: w(0.0, 0.5, 0.0, 0.8) },
+      { id: 'hl_5', text: 'You should ghost more often, not less', emoji: '🔥', weights: w(0.5, 0.2, -0.5, 0.1) },
+      { id: 'hl_6', text: 'Discipline beats motivation every time', emoji: '🔥', weights: w(-0.1, 0.9, -0.1, 0.3) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // HOT TAKES - SOCIAL (stem: hot_take)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_hottake_social',
+    stemId: 'stem_hot_take',
+    category: 'friendships',
+    label: 'Social hot takes',
+    options: [
+      { id: 'hs_1', text: 'Big friend groups are a flex', emoji: '🔥', weights: w(0.8, 0.3, 0.0, -0.2) },
+      { id: 'hs_2', text: 'Your inner circle should be tiny', emoji: '🔥', weights: w(-0.3, 0.1, 0.7, 0.5) },
+      { id: 'hs_3', text: 'Accountability partners > therapists', emoji: '🔥', weights: w(0.1, 0.8, 0.2, 0.0) },
+      { id: 'hs_4', text: 'You can tell everything about someone by their bookshelf', emoji: '🔥', weights: w(-0.1, 0.0, 0.2, 0.9) },
+      { id: 'hs_5', text: 'Flaking is underrated', emoji: '🔥', weights: w(0.3, -0.4, 0.4, 0.3) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // HOT TAKES - DATING (stem: hot_take)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_hottake_dating',
+    stemId: 'stem_hot_take',
+    category: 'spicy',
+    label: 'Dating hot takes',
+    options: [
+      { id: 'hd_1', text: 'Situationships are valid', emoji: '🔥', weights: w(0.7, -0.1, -0.2, 0.2) },
+      { id: 'hd_2', text: 'If they wanted to, they would', emoji: '🔥', weights: w(0.2, 0.6, 0.3, 0.0) },
+      { id: 'hd_3', text: 'Emotional availability is the hottest trait', emoji: '🔥', weights: w(0.0, 0.1, 0.9, 0.1) },
+      { id: 'hd_4', text: 'Intelligence is the real rizz', emoji: '🔥', weights: w(-0.1, 0.3, 0.1, 0.8) },
+      { id: 'hd_5', text: 'The talking stage should have a deadline', emoji: '🔥', weights: w(0.3, 0.7, 0.1, 0.0) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // HOT TAKES - CULTURE (stem: hot_take)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_hottake_culture',
+    stemId: 'stem_hot_take',
+    category: 'tiktok_genz',
+    label: 'Culture hot takes',
+    options: [
+      { id: 'hc_1', text: 'Main character energy is just confidence', emoji: '🔥', weights: w(0.8, 0.3, 0.0, 0.0) },
+      { id: 'hc_2', text: 'Grind culture is toxic positivity', emoji: '🔥', weights: w(0.1, -0.4, 0.6, 0.3) },
+      { id: 'hc_3', text: 'Your music taste says more than your Myers-Briggs', emoji: '🔥', weights: w(0.3, 0.0, 0.2, 0.8) },
+      { id: 'hc_4', text: 'Everyone should compete at something', emoji: '🔥', weights: w(0.3, 0.8, 0.0, 0.1) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // OVERRATED - ACTIVITIES (stem: overrated)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_rated_activities',
+    stemId: 'stem_overrated',
+    category: 'nights_out',
+    label: 'Activities rated',
+    options: [
+      { id: 'ra_1', text: 'Clubbing', emoji: '🪩', weights: w(0.8, 0.2, -0.2, -0.1) },
+      { id: 'ra_2', text: 'Gym selfies', emoji: '💪', weights: w(0.3, 0.7, -0.1, -0.2) },
+      { id: 'ra_3', text: 'Movie nights in', emoji: '🍿', weights: w(-0.2, -0.1, 0.8, 0.4) },
+      { id: 'ra_4', text: 'Book clubs', emoji: '📖', weights: w(-0.1, 0.1, 0.4, 0.8) },
+      { id: 'ra_5', text: 'Brunch', emoji: '🥞', weights: w(0.5, 0.1, 0.6, 0.0) },
+      { id: 'ra_6', text: 'Running', emoji: '🏃', weights: w(0.1, 0.8, 0.0, 0.2) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // OVERRATED - TRENDS (stem: overrated)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_rated_trends',
+    stemId: 'stem_overrated',
+    category: 'tiktok_genz',
+    label: 'Trends rated',
+    options: [
+      { id: 'rt_1', text: 'Manifesting', emoji: '✨', weights: w(0.5, -0.1, 0.4, -0.2) },
+      { id: 'rt_2', text: 'Dopamine detoxes', emoji: '🧘', weights: w(-0.2, 0.7, 0.2, 0.4) },
+      { id: 'rt_3', text: 'Matching couple fits', emoji: '👫', weights: w(0.4, 0.1, 0.6, -0.1) },
+      { id: 'rt_4', text: 'Having a "brand"', emoji: '™️', weights: w(0.3, 0.5, -0.1, 0.6) },
+      { id: 'rt_5', text: 'Hot girl walks', emoji: '🚶‍♀️', weights: w(0.4, 0.6, 0.3, 0.0) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // OVERRATED - FOOD (stem: overrated)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_rated_food',
+    stemId: 'stem_overrated',
+    category: 'worldviews',
+    label: 'Food rated',
+    options: [
+      { id: 'rfo_1', text: 'Aesthetically plated food', emoji: '🍽️', weights: w(0.3, 0.1, 0.3, 0.7) },
+      { id: 'rfo_2', text: 'Protein shakes', emoji: '🥤', weights: w(0.0, 0.9, -0.1, 0.1) },
+      { id: 'rfo_3', text: 'Homemade everything', emoji: '🏠', weights: w(-0.1, 0.2, 0.8, 0.3) },
+      { id: 'rfo_4', text: 'Trying every new restaurant', emoji: '🍴', weights: w(0.7, 0.3, 0.1, 0.4) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // VALID - HABITS (stem: valid)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_valid_habits',
+    stemId: 'stem_valid',
+    category: 'humor',
+    label: 'Habits: valid or unhinged?',
+    options: [
+      { id: 'vh_1', text: 'Triple-texting', emoji: '📱', weights: w(0.7, 0.2, 0.3, -0.1) },
+      { id: 'vh_2', text: 'Scheduling your free time', emoji: '📅', weights: w(-0.1, 0.8, 0.1, 0.3) },
+      { id: 'vh_3', text: 'Stalking someone\'s following list', emoji: '👀', weights: w(0.4, 0.1, 0.3, 0.5) },
+      { id: 'vh_4', text: 'Crying at ads', emoji: '😢', weights: w(0.0, -0.2, 0.8, 0.2) },
+      { id: 'vh_5', text: 'Having a spreadsheet for everything', emoji: '📊', weights: w(-0.2, 0.5, 0.0, 0.8) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // VALID - SOCIAL (stem: valid)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_valid_social',
+    stemId: 'stem_valid',
+    category: 'friendships',
+    label: 'Social: valid or unhinged?',
+    options: [
+      { id: 'vs_1', text: 'Leaving a party without telling anyone', emoji: '🚪', weights: w(0.1, -0.1, 0.5, 0.6) },
+      { id: 'vs_2', text: 'Making friends with the DJ', emoji: '🎧', weights: w(0.9, 0.2, 0.1, 0.0) },
+      { id: 'vs_3', text: 'Saying "I love you" to friends daily', emoji: '💗', weights: w(0.3, 0.0, 0.8, 0.0) },
+      { id: 'vs_4', text: 'Keeping a notes app list of restaurant recs', emoji: '📝', weights: w(0.1, 0.4, 0.2, 0.8) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // VALID - DATING (stem: valid)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_valid_dating',
+    stemId: 'stem_valid',
+    category: 'spicy',
+    label: 'Dating: valid or unhinged?',
+    options: [
+      { id: 'vd_1', text: 'Checking their Spotify before replying', emoji: '🎵', weights: w(0.2, 0.0, 0.2, 0.8) },
+      { id: 'vd_2', text: 'Having a dating spreadsheet', emoji: '📊', weights: w(-0.1, 0.8, 0.0, 0.4) },
+      { id: 'vd_3', text: 'Falling in love with their vibe before their face', emoji: '🫠', weights: w(0.1, 0.0, 0.7, 0.5) },
+      { id: 'vd_4', text: 'Already planning the first date while matching', emoji: '🗓️', weights: w(0.6, 0.5, 0.2, 0.0) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // WOULD YOU RATHER - SOCIAL (stem: rather)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_rather_social',
+    stemId: 'stem_rather',
+    category: 'friendships',
+    label: 'Social dilemmas',
+    options: [
+      { id: 'wrs_1', text: 'Be the life of the party', emoji: '🎉', weights: w(0.9, 0.2, 0.1, -0.2) },
+      { id: 'wrs_2', text: 'Have one deep conversation', emoji: '🌙', weights: w(-0.2, 0.0, 0.8, 0.5) },
+      { id: 'wrs_3', text: 'Win the argument', emoji: '🏆', weights: w(0.2, 0.7, -0.1, 0.5) },
+      { id: 'wrs_4', text: 'Keep the peace', emoji: '☮️', weights: w(0.0, -0.1, 0.8, 0.1) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // WOULD YOU RATHER - LIFE (stem: rather)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_rather_life',
+    stemId: 'stem_rather',
+    category: 'worldviews',
+    label: 'Life dilemmas',
+    options: [
+      { id: 'wrl_1', text: 'Be famous for a year', emoji: '⭐', weights: w(0.8, 0.3, -0.2, 0.0) },
+      { id: 'wrl_2', text: 'Be excellent at one thing forever', emoji: '🎯', weights: w(-0.1, 0.7, 0.1, 0.7) },
+      { id: 'wrl_3', text: 'Have unlimited social energy', emoji: '⚡', weights: w(0.9, 0.3, 0.2, -0.2) },
+      { id: 'wrl_4', text: 'Have unlimited alone time', emoji: '🏔️', weights: w(-0.3, 0.1, 0.5, 0.8) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // WOULD YOU RATHER - NIGHT (stem: rather)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_rather_night',
+    stemId: 'stem_rather',
+    category: 'nights_out',
+    label: 'Night out dilemmas',
+    options: [
+      { id: 'wrn_1', text: 'Spontaneous night that goes till 4am', emoji: '🌃', weights: w(0.9, 0.2, 0.1, 0.0) },
+      { id: 'wrn_2', text: 'Perfectly planned evening', emoji: '📋', weights: w(0.0, 0.7, 0.3, 0.5) },
+      { id: 'wrn_3', text: 'Small group, big conversation', emoji: '🕯️', weights: w(-0.2, 0.0, 0.9, 0.4) },
+      { id: 'wrn_4', text: 'New spot nobody knows about yet', emoji: '🗺️', weights: w(0.3, 0.1, 0.1, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // FRIDAY - PLANS (stem: friday)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_friday_plans',
+    stemId: 'stem_friday',
+    category: 'nights_out',
+    label: 'Friday plans',
+    options: [
+      { id: 'fp_1', text: 'Already three plans deep', emoji: '🗓️', weights: w(0.9, 0.3, 0.1, 0.0) },
+      { id: 'fp_2', text: 'Gym then early night', emoji: '💪', weights: w(-0.1, 0.9, 0.1, 0.1) },
+      { id: 'fp_3', text: 'Cooking for friends', emoji: '🍝', weights: w(0.1, 0.0, 0.9, 0.2) },
+      { id: 'fp_4', text: 'Deep in a rabbit hole', emoji: '🕳️', weights: w(0.0, 0.0, 0.2, 0.9) },
+      { id: 'fp_5', text: 'Wherever the group chat leads', emoji: '📱', weights: w(0.7, 0.2, 0.4, 0.0) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // FRIDAY - ENERGY (stem: friday)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_friday_energy',
+    stemId: 'stem_friday',
+    category: 'nights_out',
+    label: 'Friday energy',
+    options: [
+      { id: 'fe_1', text: 'Peak social battery', emoji: '🔋', weights: w(0.9, 0.3, 0.2, -0.1) },
+      { id: 'fe_2', text: 'Recovery mode', emoji: '🧘', weights: w(-0.2, 0.3, 0.6, 0.4) },
+      { id: 'fe_3', text: 'Competitive edge activated', emoji: '🏆', weights: w(0.3, 0.9, 0.0, 0.1) },
+      { id: 'fe_4', text: 'Creative brain unlocked', emoji: '🎨', weights: w(0.2, 0.0, 0.3, 0.8) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // VIBE - MOODS (stem: vibe_check)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_vibe_moods',
+    stemId: 'stem_vibe_check',
+    category: 'worldviews',
+    label: 'Mood vibes',
+    options: [
+      { id: 'vm_1', text: 'Main character moment', emoji: '✨', weights: w(0.9, 0.2, 0.1, 0.0) },
+      { id: 'vm_2', text: 'Locked in', emoji: '🔒', weights: w(0.0, 0.9, 0.0, 0.3) },
+      { id: 'vm_3', text: 'Soft hours', emoji: '🌸', weights: w(0.0, -0.1, 0.9, 0.2) },
+      { id: 'vm_4', text: 'Lore dump incoming', emoji: '📚', weights: w(0.0, 0.1, 0.1, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // VIBE - AESTHETICS (stem: vibe_check)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_vibe_aesthetics',
+    stemId: 'stem_vibe_check',
+    category: 'tiktok_genz',
+    label: 'Aesthetic vibes',
+    options: [
+      { id: 'va_1', text: 'City at night', emoji: '🌃', weights: w(0.8, 0.3, 0.0, 0.2) },
+      { id: 'va_2', text: 'Golden hour anywhere', emoji: '🌅', weights: w(0.3, 0.2, 0.7, 0.3) },
+      { id: 'va_3', text: 'Library with rain sounds', emoji: '🌧️', weights: w(-0.2, 0.0, 0.5, 0.9) },
+      { id: 'va_4', text: 'Starting line of a race', emoji: '🏁', weights: w(0.3, 0.9, 0.0, 0.0) },
+      { id: 'va_5', text: 'Bonfire with close friends', emoji: '🔥', weights: w(0.2, 0.0, 0.9, 0.1) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // VIBE - SEASONS (stem: vibe_check)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_vibe_seasons',
+    stemId: 'stem_vibe_check',
+    category: 'worldviews',
+    label: 'Season vibes',
+    options: [
+      { id: 'vss_1', text: 'Summer festival', emoji: '☀️', weights: w(0.9, 0.3, 0.2, 0.0) },
+      { id: 'vss_2', text: 'January reset', emoji: '❄️', weights: w(-0.1, 0.9, 0.1, 0.2) },
+      { id: 'vss_3', text: 'Autumn cozy season', emoji: '🍂', weights: w(0.0, 0.0, 0.9, 0.4) },
+      { id: 'vss_4', text: 'Spring deep clean (your whole life)', emoji: '🌱', weights: w(0.1, 0.5, 0.3, 0.6) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // MORE YOU - SOCIAL (stem: more_you)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_you_social',
+    stemId: 'stem_more_you',
+    category: 'friendships',
+    label: 'Social style',
+    options: [
+      { id: 'ys_1', text: 'The one rallying people to go out', emoji: '📢', weights: w(0.9, 0.3, 0.1, -0.1) },
+      { id: 'ys_2', text: 'The one who showed up prepared', emoji: '📋', weights: w(0.0, 0.8, 0.2, 0.4) },
+      { id: 'ys_3', text: 'The one everyone opens up to', emoji: '💛', weights: w(0.1, 0.0, 0.9, 0.1) },
+      { id: 'ys_4', text: 'The one with the unexpected knowledge', emoji: '🤔', weights: w(0.0, 0.1, 0.2, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // MORE YOU - CONFLICT (stem: more_you)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_you_conflict',
+    stemId: 'stem_more_you',
+    category: 'worldviews',
+    label: 'Conflict style',
+    options: [
+      { id: 'yc_1', text: 'Address it immediately, in person', emoji: '🗣️', weights: w(0.7, 0.5, 0.1, 0.0) },
+      { id: 'yc_2', text: 'Make a plan to fix it', emoji: '🛠️', weights: w(0.0, 0.8, 0.2, 0.4) },
+      { id: 'yc_3', text: 'Check in on how everyone\'s feeling first', emoji: '❤️', weights: w(0.1, 0.0, 0.9, 0.1) },
+      { id: 'yc_4', text: 'Need time to process before responding', emoji: '🧠', weights: w(-0.1, 0.1, 0.3, 0.8) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // MORE YOU - FRIEND ROLE (stem: more_you)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_you_friend',
+    stemId: 'stem_more_you',
+    category: 'friendships',
+    label: 'Friend type',
+    options: [
+      { id: 'yf_1', text: 'The connector - knows someone for every situation', emoji: '🔗', weights: w(0.9, 0.3, 0.2, 0.0) },
+      { id: 'yf_2', text: 'The coach - pushes you to be better', emoji: '📣', weights: w(0.1, 0.9, 0.1, 0.2) },
+      { id: 'yf_3', text: 'The safe space - no judgement zone', emoji: '🫂', weights: w(0.0, 0.0, 0.9, 0.2) },
+      { id: 'yf_4', text: 'The curator - always has a rec', emoji: '📋', weights: w(0.1, 0.2, 0.2, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // MORE YOU - ENERGY (stem: more_you)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_you_energy',
+    stemId: 'stem_more_you',
+    category: 'worldviews',
+    label: 'Energy style',
+    options: [
+      { id: 'ye_1', text: 'Recharged by people', emoji: '⚡', weights: w(0.9, 0.2, 0.3, -0.2) },
+      { id: 'ye_2', text: 'Recharged by progress', emoji: '📈', weights: w(0.1, 0.9, 0.0, 0.3) },
+      { id: 'ye_3', text: 'Recharged by comfort', emoji: '🛋️', weights: w(-0.1, -0.1, 0.9, 0.2) },
+      { id: 'ye_4', text: 'Recharged by learning something new', emoji: '💡', weights: w(0.0, 0.2, 0.1, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // MORE YOU - MORNINGS (stem: more_you)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_you_mornings',
+    stemId: 'stem_more_you',
+    category: 'exercise_selfcare',
+    label: 'Morning style',
+    options: [
+      { id: 'ym_1', text: 'Immediately checking what everyone\'s up to', emoji: '📱', weights: w(0.8, 0.1, 0.3, 0.0) },
+      { id: 'ym_2', text: 'Workout before anything else', emoji: '🏋️', weights: w(0.0, 0.9, 0.0, 0.1) },
+      { id: 'ym_3', text: 'Slow start, don\'t rush me', emoji: '☕', weights: w(0.0, -0.2, 0.8, 0.3) },
+      { id: 'ym_4', text: 'Already reading or listening to something', emoji: '🎧', weights: w(0.0, 0.2, 0.1, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // GUILTY PLEASURE - MEDIA (stem: guilty)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_guilty_media',
+    stemId: 'stem_guilty',
+    category: 'tv_film',
+    label: 'Guilty pleasure media',
+    options: [
+      { id: 'gpm_1', text: 'Reality TV deep dives', emoji: '📺', weights: w(0.6, 0.0, 0.5, 0.2) },
+      { id: 'gpm_2', text: 'Watching your own content back', emoji: '🤳', weights: w(0.5, 0.4, 0.0, 0.2) },
+      { id: 'gpm_3', text: 'Fan fiction', emoji: '📖', weights: w(0.0, 0.0, 0.5, 0.8) },
+      { id: 'gpm_4', text: 'ASMR', emoji: '🎧', weights: w(-0.1, 0.0, 0.8, 0.3) },
+      { id: 'gpm_5', text: 'True crime podcasts', emoji: '🔍', weights: w(0.2, 0.2, 0.3, 0.7) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // GUILTY PLEASURE - HABITS (stem: guilty)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_guilty_habits',
+    stemId: 'stem_guilty',
+    category: 'humor',
+    label: 'Guilty pleasure habits',
+    options: [
+      { id: 'gph_1', text: 'Online shopping at 2am', emoji: '🛒', weights: w(0.5, 0.1, 0.3, 0.3) },
+      { id: 'gph_2', text: 'Competitive about everything', emoji: '🏆', weights: w(0.3, 0.8, 0.0, 0.2) },
+      { id: 'gph_3', text: 'Comfort rewatching the same show', emoji: '🔄', weights: w(0.0, -0.1, 0.9, 0.2) },
+      { id: 'gph_4', text: 'Wikipedia rabbit holes at midnight', emoji: '🐰', weights: w(0.0, 0.0, 0.1, 0.9) },
+      { id: 'gph_5', text: 'Stalking old group chat messages', emoji: '👀', weights: w(0.4, 0.0, 0.5, 0.3) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // TOXIC TRAIT - SOCIAL (stem: toxic_trait)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_toxic_social',
+    stemId: 'stem_toxic_trait',
+    category: 'friendships',
+    label: 'Social toxic traits',
+    options: [
+      { id: 'ts_1', text: 'Making plans and immediately regretting it', emoji: '😅', weights: w(0.5, 0.0, 0.5, 0.3) },
+      { id: 'ts_2', text: 'Turning everything into a bit', emoji: '🎭', weights: w(0.7, 0.2, 0.0, 0.4) },
+      { id: 'ts_3', text: 'Not texting back for days then acting normal', emoji: '📱', weights: w(0.2, 0.3, -0.1, 0.6) },
+      { id: 'ts_4', text: 'Taking charge when nobody asked', emoji: '👆', weights: w(0.3, 0.8, 0.0, 0.1) },
+      { id: 'ts_5', text: 'Absorbing everyone else\'s problems', emoji: '🧽', weights: w(0.0, 0.0, 0.8, 0.2) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // TOXIC TRAIT - DATING (stem: toxic_trait)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_toxic_dating',
+    stemId: 'stem_toxic_trait',
+    category: 'spicy',
+    label: 'Dating toxic traits',
+    options: [
+      { id: 'td_1', text: 'Catching feelings too fast', emoji: '💘', weights: w(0.4, 0.0, 0.7, 0.1) },
+      { id: 'td_2', text: 'Treating dating like a strategy game', emoji: '♟️', weights: w(0.1, 0.6, 0.0, 0.7) },
+      { id: 'td_3', text: 'Losing yourself in the other person', emoji: '🫠', weights: w(0.3, -0.1, 0.6, 0.1) },
+      { id: 'td_4', text: 'Already planning the future on date two', emoji: '🗓️', weights: w(0.2, 0.7, 0.3, 0.0) },
+      { id: 'td_5', text: 'Liking the chase more than the catch', emoji: '🏃', weights: w(0.7, 0.3, -0.2, 0.2) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // TOXIC TRAIT - HABITS (stem: toxic_trait)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_toxic_habits',
+    stemId: 'stem_toxic_trait',
+    category: 'humor',
+    label: 'Habit toxic traits',
+    options: [
+      { id: 'th_1', text: 'Saying yes to everything then burning out', emoji: '🔥', weights: w(0.7, 0.3, 0.2, 0.0) },
+      { id: 'th_2', text: 'Perfectionism disguised as standards', emoji: '✨', weights: w(0.0, 0.7, 0.0, 0.6) },
+      { id: 'th_3', text: 'Avoiding conflict until it explodes', emoji: '🌋', weights: w(0.1, 0.0, 0.6, 0.3) },
+      { id: 'th_4', text: 'Researching a purchase for longer than using it', emoji: '🔍', weights: w(-0.1, 0.3, 0.0, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // FRIEND GROUP ROLE (stem: friend_group)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_role_group',
+    stemId: 'stem_friend_group',
+    category: 'friendships',
+    label: 'Group roles',
+    options: [
+      { id: 'rg_1', text: 'The hype person', emoji: '📣', weights: w(0.9, 0.3, 0.2, -0.1) },
+      { id: 'rg_2', text: 'The one keeping everyone on track', emoji: '🗂️', weights: w(0.1, 0.9, 0.2, 0.2) },
+      { id: 'rg_3', text: 'The therapist friend', emoji: '🛋️', weights: w(0.0, 0.0, 0.9, 0.2) },
+      { id: 'rg_4', text: 'The walking Wikipedia', emoji: '🧠', weights: w(0.0, 0.1, 0.1, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // FRIEND GROUP - PLANNING (stem: friend_group)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_role_planning',
+    stemId: 'stem_friend_group',
+    category: 'friendships',
+    label: 'Planning roles',
+    options: [
+      { id: 'rp_1', text: 'The one who says "let\'s just go"', emoji: '🚀', weights: w(0.9, 0.2, 0.1, 0.0) },
+      { id: 'rp_2', text: 'The one with the shared Google Doc', emoji: '📋', weights: w(0.0, 0.8, 0.2, 0.5) },
+      { id: 'rp_3', text: 'The one making sure everyone\'s included', emoji: '🤗', weights: w(0.2, 0.0, 0.9, 0.0) },
+      { id: 'rp_4', text: 'The one who found a better option', emoji: '💡', weights: w(0.2, 0.2, 0.0, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // FRIEND GROUP - DRAMA (stem: friend_group)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_role_drama',
+    stemId: 'stem_friend_group',
+    category: 'friendships',
+    label: 'Drama roles',
+    options: [
+      { id: 'rdr_1', text: 'The one who heard about it first', emoji: '👂', weights: w(0.8, 0.1, 0.3, 0.2) },
+      { id: 'rdr_2', text: 'The one who fixes it', emoji: '🔧', weights: w(0.1, 0.8, 0.3, 0.1) },
+      { id: 'rdr_3', text: 'The one everyone vents to', emoji: '💬', weights: w(0.1, 0.0, 0.9, 0.1) },
+      { id: 'rdr_4', text: 'The one who saw it coming', emoji: '🔮', weights: w(0.0, 0.2, 0.1, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // GROUP CHAT - BEHAVIOR (stem: group_chat)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_gc_behavior',
+    stemId: 'stem_group_chat',
+    category: 'tiktok_genz',
+    label: 'Group chat behavior',
+    options: [
+      { id: 'gcb_1', text: 'Sending 47 messages before anyone replies', emoji: '💬', weights: w(0.9, 0.1, 0.2, 0.1) },
+      { id: 'gcb_2', text: 'Only reacting with emojis', emoji: '👍', weights: w(0.2, 0.3, 0.3, 0.4) },
+      { id: 'gcb_3', text: 'Responding to everything with voice notes', emoji: '🎤', weights: w(0.5, 0.0, 0.7, 0.0) },
+      { id: 'gcb_4', text: 'Dropping a link with no context', emoji: '🔗', weights: w(0.1, 0.1, 0.0, 0.9) },
+      { id: 'gcb_5', text: 'Creating the itinerary nobody asked for', emoji: '📝', weights: w(0.1, 0.8, 0.2, 0.2) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // GROUP CHAT - CONTENT (stem: group_chat)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_gc_content',
+    stemId: 'stem_group_chat',
+    category: 'tiktok_genz',
+    label: 'Group chat content',
+    options: [
+      { id: 'gcc_1', text: 'Memes and chaos', emoji: '🤪', weights: w(0.8, 0.1, 0.3, 0.2) },
+      { id: 'gcc_2', text: 'Workout screenshots', emoji: '💪', weights: w(0.1, 0.9, 0.0, 0.0) },
+      { id: 'gcc_3', text: 'Wholesome check-ins', emoji: '💛', weights: w(0.0, 0.0, 0.9, 0.1) },
+      { id: 'gcc_4', text: 'Random article about something niche', emoji: '📰', weights: w(0.0, 0.1, 0.1, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // ICK - DATING (stem: ick)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_ick_dating',
+    stemId: 'stem_ick',
+    category: 'spicy',
+    label: 'Dating icks',
+    options: [
+      { id: 'id_1', text: 'They have no opinions on anything', emoji: '😐', weights: w(0.3, 0.3, -0.1, -0.4) },
+      { id: 'id_2', text: 'They one-up every story', emoji: '📢', weights: w(0.5, 0.4, -0.2, 0.1) },
+      { id: 'id_3', text: 'They\'re performatively deep', emoji: '🎭', weights: w(0.0, 0.1, -0.2, 0.5) },
+      { id: 'id_4', text: 'They can\'t be spontaneous', emoji: '📅', weights: w(0.6, -0.1, 0.0, -0.2) },
+      { id: 'id_5', text: 'They don\'t remember what you\'ve told them', emoji: '🫥', weights: w(0.1, 0.1, -0.5, 0.0) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // ICK - SOCIAL (stem: ick)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_ick_social',
+    stemId: 'stem_ick',
+    category: 'friendships',
+    label: 'Social icks',
+    options: [
+      { id: 'is_1', text: 'People who only hang out to network', emoji: '🤝', weights: w(0.4, 0.5, -0.3, 0.0) },
+      { id: 'is_2', text: 'People who never have a plan', emoji: '🤷', weights: w(0.3, -0.3, 0.2, -0.2) },
+      { id: 'is_3', text: 'People who make you feel judged', emoji: '👀', weights: w(0.1, 0.2, -0.4, 0.3) },
+      { id: 'is_4', text: 'People who never go deep', emoji: '🏊', weights: w(-0.2, 0.1, 0.3, -0.3) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // RIZZ - MOVES (stem: rizz)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_rizz_moves',
+    stemId: 'stem_rizz',
+    category: 'dating_romance',
+    label: 'Rizz moves',
+    options: [
+      { id: 'rm_1', text: 'Making everyone laugh', emoji: '😂', weights: w(0.8, 0.2, 0.3, 0.0) },
+      { id: 'rm_2', text: 'Being genuinely impressive at something', emoji: '🏅', weights: w(0.1, 0.9, 0.0, 0.3) },
+      { id: 'rm_3', text: 'Remembering tiny details about them', emoji: '🎯', weights: w(0.0, 0.1, 0.9, 0.2) },
+      { id: 'rm_4', text: 'Knowing the most interesting thing in any room', emoji: '🗝️', weights: w(0.2, 0.1, 0.1, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // RIZZ - ENERGY (stem: rizz)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_rizz_energy',
+    stemId: 'stem_rizz',
+    category: 'dating_romance',
+    label: 'Rizz energy',
+    options: [
+      { id: 're_1', text: 'Confident chaos', emoji: '🌪️', weights: w(0.9, 0.2, 0.0, 0.1) },
+      { id: 're_2', text: 'Quiet competence', emoji: '🔇', weights: w(0.0, 0.7, 0.2, 0.6) },
+      { id: 're_3', text: 'Warm attention', emoji: '🌞', weights: w(0.2, 0.0, 0.9, 0.1) },
+      { id: 're_4', text: 'Mysterious depth', emoji: '🌊', weights: w(0.0, 0.1, 0.2, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // DATE PLANS (stem: date_night)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_date_plans',
+    stemId: 'stem_date_night',
+    category: 'dating_romance',
+    label: 'Date ideas',
+    options: [
+      { id: 'dp_1', text: 'Bar crawl with no plan', emoji: '🍻', weights: w(0.9, 0.1, 0.2, 0.0) },
+      { id: 'dp_2', text: 'Active date (climbing, skating)', emoji: '🧗', weights: w(0.3, 0.9, 0.1, 0.1) },
+      { id: 'dp_3', text: 'Cooking together', emoji: '👩‍🍳', weights: w(0.1, 0.1, 0.9, 0.2) },
+      { id: 'dp_4', text: 'Exhibition or film screening', emoji: '🎨', weights: w(0.0, 0.1, 0.3, 0.9) },
+      { id: 'dp_5', text: 'People-watching at a market', emoji: '🧐', weights: w(0.5, 0.0, 0.5, 0.4) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // DATE VIBES (stem: date_night)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_date_vibes',
+    stemId: 'stem_date_night',
+    category: 'dating_romance',
+    label: 'Date energy',
+    options: [
+      { id: 'dv_1', text: 'Spontaneous and loud', emoji: '🎉', weights: w(0.9, 0.2, 0.1, 0.0) },
+      { id: 'dv_2', text: 'Challenging each other', emoji: '⚔️', weights: w(0.2, 0.8, 0.0, 0.4) },
+      { id: 'dv_3', text: 'Intimate and real', emoji: '🕯️', weights: w(0.0, 0.0, 0.9, 0.3) },
+      { id: 'dv_4', text: 'Discovering something new together', emoji: '🗺️', weights: w(0.3, 0.2, 0.2, 0.8) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // GRIND - WORK (stem: grind)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_grind_work',
+    stemId: 'stem_grind',
+    category: 'work_school',
+    label: 'Work style',
+    options: [
+      { id: 'gw_1', text: 'Wing it and vibes', emoji: '🌊', weights: w(0.8, 0.0, 0.3, 0.1) },
+      { id: 'gw_2', text: 'Systems and routines', emoji: '⚙️', weights: w(-0.1, 0.9, 0.1, 0.3) },
+      { id: 'gw_3', text: 'Collaborative energy', emoji: '🤝', weights: w(0.3, 0.2, 0.8, 0.0) },
+      { id: 'gw_4', text: 'Deep focus, don\'t interrupt', emoji: '🎧', weights: w(-0.1, 0.3, 0.0, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // GRIND - GOALS (stem: grind)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_grind_goals',
+    stemId: 'stem_grind',
+    category: 'exercise_selfcare',
+    label: 'Goal style',
+    options: [
+      { id: 'gg_1', text: 'Big goals, figure it out later', emoji: '🚀', weights: w(0.7, 0.3, 0.1, 0.0) },
+      { id: 'gg_2', text: 'Track everything, optimize constantly', emoji: '📈', weights: w(0.0, 0.9, 0.0, 0.4) },
+      { id: 'gg_3', text: 'Goals with people, not just numbers', emoji: '👥', weights: w(0.2, 0.2, 0.8, 0.0) },
+      { id: 'gg_4', text: 'Mastery > achievement', emoji: '🎓', weights: w(0.0, 0.3, 0.1, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // QUEST - LIFE (stem: main_quest)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_quest_life',
+    stemId: 'stem_main_quest',
+    category: 'worldviews',
+    label: 'Life priorities',
+    options: [
+      { id: 'ql_1', text: 'Building an epic social life', emoji: '🎪', weights: w(0.9, 0.1, 0.3, 0.0) },
+      { id: 'ql_2', text: 'Leveling up every day', emoji: '⬆️', weights: w(0.0, 0.9, 0.0, 0.3) },
+      { id: 'ql_3', text: 'Finding your people', emoji: '🫂', weights: w(0.2, 0.0, 0.9, 0.1) },
+      { id: 'ql_4', text: 'Understanding everything', emoji: '🔬', weights: w(0.0, 0.2, 0.1, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // QUEST - GOALS (stem: main_quest)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_quest_goals',
+    stemId: 'stem_main_quest',
+    category: 'work_school',
+    label: 'Goals',
+    options: [
+      { id: 'qg_1', text: 'Experiences > things', emoji: '🌍', weights: w(0.7, 0.1, 0.4, 0.3) },
+      { id: 'qg_2', text: 'Results > feelings', emoji: '📊', weights: w(0.1, 0.8, -0.2, 0.4) },
+      { id: 'qg_3', text: 'People > projects', emoji: '❤️', weights: w(0.2, -0.1, 0.9, 0.0) },
+      { id: 'qg_4', text: 'Knowledge > everything', emoji: '📚', weights: w(0.0, 0.2, 0.0, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // ERA - LIFE (stem: era)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_era_life',
+    stemId: 'stem_era',
+    category: 'tiktok_genz',
+    label: 'Life eras',
+    options: [
+      { id: 'el_1', text: 'Villain era (doing what I want)', emoji: '😈', weights: w(0.8, 0.3, -0.1, 0.2) },
+      { id: 'el_2', text: 'Grind era (head down, working)', emoji: '💼', weights: w(0.0, 0.9, 0.0, 0.2) },
+      { id: 'el_3', text: 'Soft era (being gentle with myself)', emoji: '🧸', weights: w(0.0, -0.1, 0.9, 0.2) },
+      { id: 'el_4', text: 'Nerd era (going deep on something)', emoji: '🤓', weights: w(0.0, 0.2, 0.1, 0.9) },
+      { id: 'el_5', text: 'Main character era', emoji: '👑', weights: w(0.9, 0.3, 0.1, 0.0) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // ERA - AESTHETIC (stem: era)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_era_aesthetic',
+    stemId: 'stem_era',
+    category: 'tiktok_genz',
+    label: 'Aesthetic eras',
+    options: [
+      { id: 'ea_1', text: 'Clean girl aesthetic', emoji: '🧖', weights: w(0.4, 0.6, 0.3, 0.0) },
+      { id: 'ea_2', text: 'Dark academia', emoji: '🕯️', weights: w(0.0, 0.1, 0.4, 0.9) },
+      { id: 'ea_3', text: 'Cottagecore', emoji: '🌻', weights: w(0.0, 0.0, 0.9, 0.3) },
+      { id: 'ea_4', text: 'Streetwear/hypebeast', emoji: '🔥', weights: w(0.7, 0.4, 0.0, 0.2) },
+      { id: 'ea_5', text: 'Gorpcore (outdoor everything)', emoji: '🏔️', weights: w(0.2, 0.8, 0.2, 0.2) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // ROMANTICIZE - MUNDANE (stem: romanticize)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_romanticize_mundane',
+    stemId: 'stem_romanticize',
+    category: 'humor',
+    label: 'Romanticize mundane things',
+    options: [
+      { id: 'rom_1', text: 'Your morning commute', emoji: '🚶', weights: w(0.3, 0.2, 0.3, 0.6) },
+      { id: 'rom_2', text: 'Getting ready to go out', emoji: '💄', weights: w(0.7, 0.2, 0.4, 0.0) },
+      { id: 'rom_3', text: 'A perfectly productive day', emoji: '✅', weights: w(0.0, 0.9, 0.1, 0.2) },
+      { id: 'rom_4', text: 'Doing laundry with good music', emoji: '🧺', weights: w(0.1, 0.0, 0.8, 0.3) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // ROMANTICIZE - CHAOS (stem: romanticize)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_romanticize_chaos',
+    stemId: 'stem_romanticize',
+    category: 'humor',
+    label: 'Romanticize chaos',
+    options: [
+      { id: 'roc_1', text: 'Getting lost in a new city', emoji: '🗺️', weights: w(0.8, 0.1, 0.2, 0.4) },
+      { id: 'roc_2', text: 'Pulling an all-nighter for something you love', emoji: '🌙', weights: w(0.2, 0.5, 0.0, 0.8) },
+      { id: 'roc_3', text: 'A spontaneous road trip', emoji: '🚗', weights: w(0.7, 0.2, 0.4, 0.1) },
+      { id: 'roc_4', text: 'Crying at something beautiful', emoji: '🥹', weights: w(0.0, 0.0, 0.9, 0.3) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // CORE AESTHETIC (stem: core)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_core_aesthetic',
+    stemId: 'stem_core',
+    category: 'tiktok_genz',
+    label: 'Core aesthetics',
+    options: [
+      { id: 'ca_1', text: 'Partycore', emoji: '🪩', weights: w(0.9, 0.1, 0.2, 0.0) },
+      { id: 'ca_2', text: 'Hustlecore', emoji: '💰', weights: w(0.2, 0.9, 0.0, 0.1) },
+      { id: 'ca_3', text: 'Comfycore', emoji: '🧸', weights: w(0.0, -0.1, 0.9, 0.2) },
+      { id: 'ca_4', text: 'Brainrot', emoji: '🧠', weights: w(0.2, 0.0, 0.1, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // CORE LIFESTYLE (stem: core)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_core_lifestyle',
+    stemId: 'stem_core',
+    category: 'worldviews',
+    label: 'Core lifestyle',
+    options: [
+      { id: 'cl_1', text: 'Social butterfly era', emoji: '🦋', weights: w(0.9, 0.1, 0.3, 0.0) },
+      { id: 'cl_2', text: 'Discipline arc', emoji: '⚡', weights: w(0.0, 0.9, 0.0, 0.3) },
+      { id: 'cl_3', text: 'Healing journey', emoji: '🌿', weights: w(0.0, 0.0, 0.9, 0.3) },
+      { id: 'cl_4', text: 'Knowledge quest', emoji: '📜', weights: w(0.0, 0.2, 0.1, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // W OR L - TAKES (stem: ratio)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_wl_takes',
+    stemId: 'stem_ratio',
+    category: 'spicy',
+    label: 'Takes: W or L?',
+    options: [
+      { id: 'wt_1', text: 'Texting back immediately', emoji: '⚡', weights: w(0.6, 0.3, 0.5, 0.0) },
+      { id: 'wt_2', text: 'Having a five-year plan', emoji: '📅', weights: w(-0.1, 0.8, 0.1, 0.4) },
+      { id: 'wt_3', text: 'Saying "I miss you" first', emoji: '💕', weights: w(0.3, 0.0, 0.8, 0.0) },
+      { id: 'wt_4', text: 'Knowing obscure facts about everything', emoji: '🤓', weights: w(0.0, 0.1, 0.1, 0.9) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // W OR L - CHOICES (stem: ratio)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_wl_choices',
+    stemId: 'stem_ratio',
+    category: 'humor',
+    label: 'Choices: W or L?',
+    options: [
+      { id: 'wc_1', text: 'Going out on a Sunday night', emoji: '🌃', weights: w(0.8, 0.1, 0.0, 0.1) },
+      { id: 'wc_2', text: 'Meal prepping for the week', emoji: '🍱', weights: w(-0.1, 0.9, 0.2, 0.1) },
+      { id: 'wc_3', text: 'Rereading your favourite book', emoji: '📖', weights: w(-0.1, 0.0, 0.7, 0.6) },
+      { id: 'wc_4', text: 'Learning a new hobby every month', emoji: '🎨', weights: w(0.4, 0.3, 0.1, 0.7) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // W OR L - HABITS (stem: ratio)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_wl_habits',
+    stemId: 'stem_ratio',
+    category: 'humor',
+    label: 'Habits: W or L?',
+    options: [
+      { id: 'wh_1', text: 'Never saying no to plans', emoji: '🎉', weights: w(0.8, 0.1, 0.3, -0.1) },
+      { id: 'wh_2', text: 'Cold showers every morning', emoji: '🥶', weights: w(0.0, 0.9, -0.1, 0.2) },
+      { id: 'wh_3', text: 'Having the same best friend since childhood', emoji: '🤞', weights: w(0.1, 0.0, 0.9, 0.1) },
+      { id: 'wh_4', text: 'Reading reviews before buying anything', emoji: '📱', weights: w(-0.1, 0.3, 0.1, 0.8) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // HOT TAKES - GENERATIONAL (stem: hot_take)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_hottake_gen',
+    stemId: 'stem_hot_take',
+    category: 'tiktok_genz',
+    label: 'Generational hot takes',
+    options: [
+      { id: 'hg_1', text: 'Phone calls are better than texting', emoji: '🔥', weights: w(0.2, 0.4, 0.6, 0.0) },
+      { id: 'hg_2', text: 'Nobody actually reads the books they post', emoji: '🔥', weights: w(0.4, 0.2, -0.1, 0.7) },
+      { id: 'hg_3', text: 'Going viral is the new lottery', emoji: '🔥', weights: w(0.8, 0.3, 0.0, 0.1) },
+      { id: 'hg_4', text: 'Touch grass is unironically great advice', emoji: '🔥', weights: w(0.0, 0.7, 0.4, 0.2) },
+      { id: 'hg_5', text: 'Aesthetic ≠ personality', emoji: '🔥', weights: w(0.1, 0.5, 0.2, 0.6) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // HOT TAKES - SELF (stem: hot_take)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_hottake_self',
+    stemId: 'stem_hot_take',
+    category: 'spicy',
+    label: 'Self hot takes',
+    options: [
+      { id: 'hself_1', text: 'You should date your opposite, not your type', emoji: '🔥', weights: w(0.5, 0.1, 0.2, 0.5) },
+      { id: 'hself_2', text: 'Alone time is more productive than any meeting', emoji: '🔥', weights: w(-0.3, 0.3, 0.3, 0.8) },
+      { id: 'hself_3', text: 'Your vibe attracts your tribe is literally true', emoji: '🔥', weights: w(0.6, 0.0, 0.6, 0.0) },
+      { id: 'hself_4', text: 'Comparison is actually motivating', emoji: '🔥', weights: w(0.2, 0.8, -0.2, 0.3) },
+      { id: 'hself_5', text: 'Everyone should go to therapy', emoji: '🔥', weights: w(0.0, 0.2, 0.7, 0.4) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // CELEBRITIES (stem: better)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_celebrities',
+    stemId: 'stem_better',
+    category: 'tiktok_genz',
+    label: 'Celebrities',
+    options: [
+      { id: 'cel_1', text: 'Zendaya', emoji: '✨', weights: w(0.5, 0.3, 0.4, 0.4) },
+      { id: 'cel_2', text: 'Pedro Pascal', emoji: '🥰', weights: w(0.3, 0.1, 0.8, 0.3) },
+      { id: 'cel_3', text: 'Timothée Chalamet', emoji: '🎬', weights: w(0.2, 0.1, 0.4, 0.8) },
+      { id: 'cel_4', text: 'Sydney Sweeney', emoji: '🌟', weights: w(0.6, 0.4, 0.3, 0.0) },
+      { id: 'cel_5', text: 'MrBeast', emoji: '📈', weights: w(0.7, 0.7, 0.0, 0.0) },
+      { id: 'cel_6', text: 'Jenna Ortega', emoji: '🖤', weights: w(0.3, 0.2, 0.2, 0.7) },
+      { id: 'cel_7', text: 'Emma Chamberlain', emoji: '☕', weights: w(0.4, 0.1, 0.7, 0.3) },
+      { id: 'cel_8', text: 'The Rock', emoji: '💪', weights: w(0.4, 0.9, 0.2, 0.0) },
+    ],
+  },
+
+  // ────────────────────────────────────────
+  // SUPERPOWERS (stem: rather)
+  // ────────────────────────────────────────
+  {
+    id: 'pool_superpowers',
+    stemId: 'stem_rather',
+    category: 'humor',
+    label: 'Superpowers',
+    options: [
+      { id: 'sup_1', text: 'Teleportation', emoji: '🌀', weights: w(0.7, 0.3, 0.1, 0.2) },
+      { id: 'sup_2', text: 'Time control', emoji: '⏰', weights: w(0.0, 0.8, 0.1, 0.5) },
+      { id: 'sup_3', text: 'Mind reading', emoji: '🧠', weights: w(0.3, 0.1, 0.7, 0.4) },
+      { id: 'sup_4', text: 'Shapeshifting', emoji: '🦎', weights: w(0.6, 0.1, 0.2, 0.6) },
+      { id: 'sup_5', text: 'Invisibility', emoji: '👻', weights: w(0.0, 0.0, 0.4, 0.8) },
+      { id: 'sup_6', text: 'Super strength', emoji: '💪', weights: w(0.3, 0.9, 0.1, 0.0) },
+      { id: 'sup_7', text: 'Healing others', emoji: '💚', weights: w(0.0, 0.1, 0.9, 0.2) },
+      { id: 'sup_8', text: 'Photographic memory', emoji: '📸', weights: w(0.0, 0.4, 0.0, 0.9) },
+    ],
+  },
 ];
 
-// ═══════════════════════════════════════════════════════════════════════════════════
-// PHASE 3: MIRROR QUESTIONS (30)
-// Testing which direction feels more true when archetypes are flipped
-// ═══════════════════════════════════════════════════════════════════════════════════
+// ─── Verification helpers ───
 
-export const MIRROR_QUESTIONS: MirrorQuestion[] = [
-  // ─── Pair 1: Pulse/Glow vs Glow/Pulse ───
-  {
-    id: 'mirror_pg_1',
-    mirrorPair: 'pulse_glow',
-    text: 'You throw a party. Energy centers on:',
-    optionA: { text: '🎤 Me - everyone wants my attention', emoji: '🎤', direction: 'asIs' },
-    optionB: { text: '👥 The team - making sure bonds deepen', emoji: '👥', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_pg_2',
-    mirrorPair: 'pulse_glow',
-    text: 'Friends rely on you for:',
-    optionA: { text: '🌟 The main character energy and hype', emoji: '🌟', direction: 'asIs' },
-    optionB: { text: '🏆 Keeping everyone leveled up together', emoji: '🏆', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_pg_3',
-    mirrorPair: 'pulse_glow',
-    text: 'When you win at something:',
-    optionA: { text: '✨ You want everyone to know', emoji: '✨', direction: 'asIs' },
-    optionB: { text: '🎯 You want your crew to feel the win', emoji: '🎯', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_pg_4',
-    mirrorPair: 'pulse_glow',
-    text: 'Group chat when plans are happening:',
-    optionA: { text: '🔥 You\'re the one people comment "show off" on', emoji: '🔥', direction: 'asIs' },
-    optionB: { text: '🤝 You\'re the one organizing logistics', emoji: '🤝', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_pg_5',
-    mirrorPair: 'pulse_glow',
-    text: 'What makes a night legendary:',
-    optionA: { text: '🎪 I was the reason it was unforgettable', emoji: '🎪', direction: 'asIs' },
-    optionB: { text: '👑 We all became better versions that night', emoji: '👑', direction: 'flipped' }
-  },
-
-  // ─── Pair 2: Pulse/Cozy vs Cozy/Pulse ───
-  {
-    id: 'mirror_pc_1',
-    mirrorPair: 'pulse_cozy',
-    text: 'Your warmth shows up as:',
-    optionA: { text: '🌍 Me showing up and instantly warming any room', emoji: '🌍', direction: 'asIs' },
-    optionB: { text: '🏡 A home where people want to stay', emoji: '🏡', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_pc_2',
-    mirrorPair: 'pulse_cozy',
-    text: 'After hanging with you, people feel:',
-    optionA: { text: '💫 More energized than before', emoji: '💫', direction: 'asIs' },
-    optionB: { text: '🛋️ More at home than before', emoji: '🛋️', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_pc_3',
-    mirrorPair: 'pulse_cozy',
-    text: 'Hosting vs showing up:',
-    optionA: { text: '🚗 I\'d rather roll through and spread vibes', emoji: '🚗', direction: 'asIs' },
-    optionB: { text: '🕯️ I\'d rather people come over on purpose', emoji: '🕯️', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_pc_4',
-    mirrorPair: 'pulse_cozy',
-    text: 'When someone\'s down:',
-    optionA: { text: '💗 Drag them out somewhere fun and warm them up', emoji: '💗', direction: 'asIs' },
-    optionB: { text: '🍵 Invite them over and make them feel held', emoji: '🍵', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_pc_5',
-    mirrorPair: 'pulse_cozy',
-    text: 'You\'re known for creating:',
-    optionA: { text: '✨ Warmth and fun wherever you go', emoji: '✨', direction: 'asIs' },
-    optionB: { text: '🏠 A space that feels like a safe harbor', emoji: '🏠', direction: 'flipped' }
-  },
-
-  // ─── Pair 3: Pulse/Lore vs Lore/Pulse ───
-  {
-    id: 'mirror_pl_1',
-    mirrorPair: 'pulse_lore',
-    text: 'Good taste comes from:',
-    optionA: { text: '🎵 Living out in the world finding things', emoji: '🎵', direction: 'asIs' },
-    optionB: { text: '📖 Deep diving and ranking everything', emoji: '📖', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_pl_2',
-    mirrorPair: 'pulse_lore',
-    text: 'When you find something you love:',
-    optionA: { text: '🌟 Casually drop it in convo, people follow', emoji: '🌟', direction: 'asIs' },
-    optionB: { text: '🎬 Write a whole thing about why it slaps', emoji: '🎬', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_pl_3',
-    mirrorPair: 'pulse_lore',
-    text: 'Your recommendations hit because:',
-    optionA: { text: '✨ You just seem to naturally know what\'s cool', emoji: '✨', direction: 'asIs' },
-    optionB: { text: '🎤 You\'re so passionate about it', emoji: '🎤', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_pl_4',
-    mirrorPair: 'pulse_lore',
-    text: 'At trivia night, you:',
-    optionA: { text: '🏃 Know random stuff from experience', emoji: '🏃', direction: 'asIs' },
-    optionB: { text: '📊 Actually studied pop culture meta', emoji: '📊', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_pl_5',
-    mirrorPair: 'pulse_lore',
-    text: 'When obsessed with something new:',
-    optionA: { text: '🚀 Keep finding new things like it', emoji: '🚀', direction: 'asIs' },
-    optionB: { text: '🧠 Master every detail and theory', emoji: '🧠', direction: 'flipped' }
-  },
-
-  // ─── Pair 4: Glow/Cozy vs Cozy/Glow ───
-  {
-    id: 'mirror_gc_1',
-    mirrorPair: 'glow_cozy',
-    text: 'You track progress by:',
-    optionA: { text: '💪 Morning run then meal prep', emoji: '💪', direction: 'asIs' },
-    optionB: { text: '🧘 Morning run that became friend group', emoji: '🧘', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_gc_2',
-    mirrorPair: 'glow_cozy',
-    text: 'Growth feels good when:',
-    optionA: { text: '📈 You set it as a goal, then do it kindly', emoji: '📈', direction: 'asIs' },
-    optionB: { text: '🏡 It happens naturally through living well', emoji: '🏡', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_gc_3',
-    mirrorPair: 'glow_cozy',
-    text: 'Your accountability system is:',
-    optionA: { text: '🎯 "Let\'s both get better" conversations', emoji: '🎯', direction: 'asIs' },
-    optionB: { text: '☕ "Want to walk together?" routines', emoji: '☕', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_gc_4',
-    mirrorPair: 'glow_cozy',
-    text: 'Rest means:',
-    optionA: { text: '💚 Earned after work, guilt-free downtime', emoji: '💚', direction: 'asIs' },
-    optionB: { text: '🛌 Just part of taking care of yourself', emoji: '🛌', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_gc_5',
-    mirrorPair: 'glow_cozy',
-    text: 'Your biggest achievement felt like:',
-    optionA: { text: '🏆 Reaching a goal I set intentionally', emoji: '🏆', direction: 'asIs' },
-    optionB: { text: '🌿 A natural result of living aligned', emoji: '🌿', direction: 'flipped' }
-  },
-
-  // ─── Pair 5: Glow/Lore vs Lore/Glow ───
-  {
-    id: 'mirror_gl_1',
-    mirrorPair: 'glow_lore',
-    text: 'Learning something new, you:',
-    optionA: { text: '🔬 Read reviews, find the best way to start', emoji: '🔬', direction: 'asIs' },
-    optionB: { text: '🎮 Jump in and learn every single mechanic', emoji: '🎮', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_gl_2',
-    mirrorPair: 'glow_lore',
-    text: 'Your YouTube history is:',
-    optionA: { text: '📊 "How to get better at X" tutorials', emoji: '📊', direction: 'asIs' },
-    optionB: { text: '🏅 "X explained - every detail" 3-hour videos', emoji: '🏅', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_gl_3',
-    mirrorPair: 'glow_lore',
-    text: 'When you really like something:',
-    optionA: { text: '⚙️ Optimize how you do it', emoji: '⚙️', direction: 'asIs' },
-    optionB: { text: '📚 100% every aspect of it', emoji: '📚', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_gl_4',
-    mirrorPair: 'glow_lore',
-    text: 'Knowledge feels useful when:',
-    optionA: { text: '🎯 It makes you better at life stuff', emoji: '🎯', direction: 'asIs' },
-    optionB: { text: '🧠 Understanding it is the whole point', emoji: '🧠', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_gl_5',
-    mirrorPair: 'glow_lore',
-    text: 'Video games, you play to:',
-    optionA: { text: '🏃 Speed-run efficiently and win', emoji: '🏃', direction: 'asIs' },
-    optionB: { text: '👑 Find all secrets and beat all difficulties', emoji: '👑', direction: 'flipped' }
-  },
-
-  // ─── Pair 6: Cozy/Lore vs Lore/Cozy ───
-  {
-    id: 'mirror_cl_1',
-    mirrorPair: 'cozy_lore',
-    text: 'Your vibe when sharing media:',
-    optionA: { text: '🎨 "Check out this aesthetic, the whole world"', emoji: '🎨', direction: 'asIs' },
-    optionB: { text: '💭 "This scene changed how I see life"', emoji: '💭', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_cl_2',
-    mirrorPair: 'cozy_lore',
-    text: 'Your bookshelf is curated for:',
-    optionA: { text: '📚 The spines look beautiful together', emoji: '📚', direction: 'asIs' },
-    optionB: { text: '🧘 The wisdom inside each one', emoji: '🧘', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_cl_3',
-    mirrorPair: 'cozy_lore',
-    text: 'Someone asks "who are you":',
-    optionA: { text: '✨ "I curate beautiful things I love"', emoji: '✨', direction: 'asIs' },
-    optionB: { text: '🌟 "Stories taught me how to feel"', emoji: '🌟', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_cl_4',
-    mirrorPair: 'cozy_lore',
-    text: 'Anime or shows you love:',
-    optionA: { text: '🎬 You make fan edits and aesthetics', emoji: '🎬', direction: 'asIs' },
-    optionB: { text: '💡 You rewatch to understand the character depth', emoji: '💡', direction: 'flipped' }
-  },
-  {
-    id: 'mirror_cl_5',
-    mirrorPair: 'cozy_lore',
-    text: 'When sad, you turn to your thing:',
-    optionA: { text: '🕯️ The comfort of the familiar vibe', emoji: '🕯️', direction: 'asIs' },
-    optionB: { text: '🌙 The wisdom that made you feel less alone', emoji: '🌙', direction: 'flipped' }
+/** Count pools per category */
+export function getPoolsByCategory(): Record<PoolCategory, string[]> {
+  const result = {} as Record<PoolCategory, string[]>;
+  for (const pool of ANSWER_POOLS) {
+    if (!result[pool.category]) result[pool.category] = [];
+    result[pool.category].push(pool.id);
   }
-];
+  return result;
+}
+
+/** Verify every pool is referenced by exactly one stem */
+export function verifyPoolStemMapping(): { orphanPools: string[]; missingPools: string[] } {
+  const poolIds = new Set(ANSWER_POOLS.map(p => p.id));
+  const referencedPools = new Set(QUESTION_STEMS.flatMap(s => s.pools));
+
+  const orphanPools = ANSWER_POOLS.filter(p => !referencedPools.has(p.id)).map(p => p.id);
+  const missingPools = [...referencedPools].filter(id => !poolIds.has(id));
+
+  return { orphanPools, missingPools };
+}
+
+/** Count total answer options across all pools */
+export function getTotalOptions(): number {
+  return ANSWER_POOLS.reduce((sum, pool) => sum + pool.options.length, 0);
+}

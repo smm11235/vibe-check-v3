@@ -84,7 +84,21 @@ export interface MirrorQuestion {
   optionB: QuestionOption & { direction: MirrorDirection }; // Flip primary/secondary
 }
 
-export type AnyQuestion = BaseQuestion | ComboQuestion | MirrorQuestion;
+// ─── Pool Question (stem + pool system) ───
+
+export interface PoolQuestionOption extends QuestionOption {
+  archetype: ArchetypeId;   // Primary archetype (highest weight)
+  weights: Record<ArchetypeId, number>; // Full weight vector for scoring
+}
+
+export interface PoolQuestion {
+  id: string;               // Generated: `${poolId}_q${index}`
+  text: string;             // Stem text (or variant)
+  optionA: PoolQuestionOption;
+  optionB: PoolQuestionOption;
+}
+
+export type AnyQuestion = BaseQuestion | ComboQuestion | MirrorQuestion | PoolQuestion;
 
 // ─── Quiz State ───
 

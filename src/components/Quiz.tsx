@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { QuizResult } from '@/data/types';
-import { useQuizEngine, isBaseQuestion, isComboQuestion } from '@/hooks/useQuizEngine';
+import { useQuizEngine, isBaseQuestion, isComboQuestion, isPoolQuestion } from '@/hooks/useQuizEngine';
 import { QuizCard } from '@/components/QuizCard';
 import { ProgressBar } from '@/components/ProgressBar';
 import { SwipeHints } from '@/components/SwipeHints';
@@ -73,6 +73,20 @@ export function Quiz({ onComplete }: QuizProps) {
 	function handleExitStart(side: 'left' | 'right' | 'up') {
 		const question = engine.currentQuestion;
 		if (!question || side === 'up') return;
+
+		// Pool questions have archetype on each option
+		if (isPoolQuestion(question)) {
+			const selected = side === 'left' ? question.optionA : question.optionB;
+			const other = side === 'left' ? question.optionB : question.optionA;
+
+			setReactionConfig({
+				boostedArchetype: selected.archetype,
+				partialArchetype: other.archetype,
+				scores: engine.scores,
+			});
+			setReactionTrigger((t) => t + 1);
+			return;
+		}
 
 		// Base and combo questions have archetype info on their options
 		if (isBaseQuestion(question) || isComboQuestion(question)) {

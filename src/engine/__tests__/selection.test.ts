@@ -4,7 +4,7 @@ import {
 	selectPhase2Question,
 	selectPhase3Question,
 } from '../selection';
-import { BASE_QUESTIONS, COMBO_QUESTIONS, MIRROR_QUESTIONS } from '@/data/questions';
+import { BASE_QUESTIONS, COMBO_QUESTIONS, MIRROR_QUESTIONS } from '@/data/legacy-questions';
 
 describe('selection', () => {
 	describe('selectPhase1Question', () => {

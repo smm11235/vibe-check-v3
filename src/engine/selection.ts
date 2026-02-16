@@ -1,6 +1,6 @@
 import type { ArchetypeId, PairId, BaseQuestion, ComboQuestion, MirrorQuestion } from '@/data/types';
 import type { Scores } from '@/data/types';
-import { BASE_QUESTIONS, COMBO_QUESTIONS, MIRROR_QUESTIONS } from '@/data/questions';
+import { BASE_QUESTIONS, COMBO_QUESTIONS, MIRROR_QUESTIONS } from '@/data/legacy-questions';
 import { getLeaderboard } from './scoring';
 
 // ─── Pair Definitions ───

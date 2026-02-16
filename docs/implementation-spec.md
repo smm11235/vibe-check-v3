@@ -356,6 +356,90 @@ Production-quality feel. Every interaction has intention. Responsive across devi
 
 ---
 
+## Phase 6: Stem + Pool Content System
+
+### Goal
+Replace the 198 fixed binary questions with a dynamic stem + pool system that generates quiz matchups at runtime. Richer scoring, more variety, pithier content.
+
+### Background
+See `docs/content-experiment.md` for full architecture description, data structures, and design rationale. Content lives in `src/data/stems-and-pools.ts` (25 stems, 73 pools, ~350 answer options).
+
+### Tasks
+1. Add new types to `src/data/types.ts` (or import from stems-and-pools.ts):
+   - `QuestionStem`, `AnswerPool`, `AnswerOption`, `PoolCategory`
+   - Alternatively, the types are already exported from `stems-and-pools.ts` and can be imported directly
+
+2. Add weighted scoring to `src/engine/scoring.ts`:
+   - New function: `applyWeightedAnswer(scores: Scores, weights: Record<ArchetypeId, number>): Scores`
+   - Applies the full weight vector from the selected option to scores
+   - Keep existing `applyAnswer()` for fallback/old system compatibility
+
+3. Build stem+pool selection engine (`src/engine/pool-selection.ts` — new file):
+   - `selectStemPoolQuestion(state: PoolQuizState): { stem: QuestionStem, stemText: string, pool: AnswerPool, optionA: AnswerOption, optionB: AnswerOption }`
+   - Pick stem (prefer those with unused pools; use variant phrasing on re-use)
+   - Pick unused pool from that stem
+   - Pick 2 options with different primary archetypes from the pool
+   - Randomize left/right position
+
+4. Add session tracking state to quiz engine:
+   - `usedPools: Set<string>` — pool IDs shown this session
+   - `stemUseCount: Record<string, number>` — how many times each stem has been used
+   - `shownOptionIds: Set<string>` — option IDs shown (for large pools)
+   - Track in `useQuizEngine.ts` via new `PoolQuizState` interface or extension of existing `QuizState`
+
+5. Update termination logic (`src/engine/termination.ts`):
+   - With weighted 4-way scoring, the 3-phase system may be simplified
+   - **Recommended approach:** Single-phase, count-based termination (~15-20 questions)
+   - Terminate when: (a) dominant archetype has >2.0 lead AND 10+ questions answered, OR (b) 20 questions answered
+   - Primary = highest score, secondary = second highest — no separate phase needed
+   - Mirror resolution: if gap between primary and secondary < threshold, ask a few more questions
+
+6. Wire into `useQuizEngine.ts`:
+   - Feature flag: `const USE_STEM_POOL = true;` (toggle for A/B testing)
+   - When enabled, use `selectStemPoolQuestion()` + `applyWeightedAnswer()`
+   - When disabled, use existing `selectPhase1Question()` + `applyAnswer()` (old system)
+   - Both paths produce the same `QuizResult` output — reveal/results screens unchanged
+
+7. Update `QuizCard.tsx` rendering:
+   - Stem text replaces the old `question.text`
+   - Option A/B text + emoji from pool options
+   - Card UI structure stays the same (question top, answers middle, emojis bottom)
+   - The top gradient strip should use the primary archetype colors of the two options shown
+
+8. Write unit tests (`src/engine/__tests__/pool-selection.test.ts`):
+   - Selection never returns a used pool
+   - Two options always have different primary archetypes
+   - Stem variant rotation works correctly
+   - Weighted scoring correctly updates all 4 archetype scores
+   - Termination triggers at expected thresholds
+   - No-repeat: stems and pools don't repeat prematurely
+
+### Acceptance Criteria
+- Feature flag allows switching between old and new content systems
+- Quiz plays through with stem+pool content, no repeated pools
+- Stems rotate variant phrasings on re-use
+- Weighted scoring produces differentiated archetype results
+- ~15-20 questions per session (tunable)
+- All existing reveal/results/compatibility screens work unchanged
+- Unit tests pass for selection, scoring, and termination
+- Old `questions.ts` data preserved as fallback
+
+### Key Files Created/Modified
+- `src/data/stems-and-pools.ts` (new — already created, content complete)
+- `src/engine/pool-selection.ts` (new)
+- `src/engine/scoring.ts` (add `applyWeightedAnswer`)
+- `src/engine/termination.ts` (simplify for single-phase)
+- `src/hooks/useQuizEngine.ts` (feature flag, pool state tracking)
+- `src/components/QuizCard.tsx` (render stem text + pool options)
+- `src/engine/__tests__/pool-selection.test.ts` (new)
+- `docs/content-experiment.md` (new — architecture docs, removable after integration)
+
+### Dependencies
+- Phase 5 (Polish) should be substantially complete before integrating — this changes the core quiz loop
+- Content in `stems-and-pools.ts` is self-contained and doesn't depend on any other phase
+
+---
+
 ## Development Notes
 
 ### Architecture Principles
