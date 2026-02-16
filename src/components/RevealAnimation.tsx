@@ -274,6 +274,9 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5 }}
 					>
+						{/* Section title */}
+						<h2 className="font-display text-[36px] text-text">Vibe Results</h2>
+
 						{/* Description card */}
 						<div className="bg-surface rounded-xl p-5 pl-7 shadow-card relative overflow-hidden">
 							<div
@@ -301,10 +304,22 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 							</div>
 						</div>
 
+						{/* Mirrored CTA after description */}
+						<div className="flex justify-center">
+							<button
+								onClick={onContinue}
+								className="bg-accent text-bg font-body font-semibold text-[18px] px-10 py-3.5 rounded-full
+									active:scale-[0.97] transition-transform duration-100 ease-out
+									shadow-elevated cursor-pointer"
+							>
+								Show your vibe →
+							</button>
+						</div>
+
 						{/* Vibe DNA Breakdown */}
 						<div className="bg-surface rounded-xl p-5">
 							<h3 className="font-display text-[32px] text-text mb-5">
-								Vibe DNA
+								Your Vibe DNA
 							</h3>
 							<div className="space-y-4">
 								{ARCHETYPE_IDS.map((archetype, i) => {
