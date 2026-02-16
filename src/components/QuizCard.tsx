@@ -444,8 +444,12 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 	return (
 		<motion.div
 			ref={cardRef}
-			className="absolute inset-0 m-auto w-[90%] max-w-[370px] h-[60vh] bg-surface rounded-xl shadow-card overflow-hidden select-none"
-			style={{ x, y, rotate, zIndex: 10, touchAction: 'none' }}
+			className="absolute inset-0 m-auto w-[90%] max-w-[370px] h-[60vh] rounded-xl shadow-card overflow-hidden select-none"
+			style={{
+				x, y, rotate, zIndex: 10, touchAction: 'none',
+				border: '6px solid transparent',
+				background: `linear-gradient(#1E1E1E, #1E1E1E) padding-box, linear-gradient(to right, ${leftColour}, ${rightColour}) border-box`,
+			}}
 			drag={!isExiting && !introPlaying}
 			dragMomentum={false}
 			onDrag={handleDrag}
@@ -456,18 +460,6 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 			transition={{ type: 'spring', stiffness: 300, damping: 25 }}
 			whileDrag={{ scale: 1.02 }}
 		>
-			{/* Gradient border — blends left/right archetype colours */}
-			<div
-				className="absolute inset-0 rounded-xl pointer-events-none"
-				style={{
-					border: '2.5px solid transparent',
-					background: `linear-gradient(to right, ${leftColour}70, ${rightColour}70) border-box`,
-					WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
-					WebkitMaskComposite: 'xor',
-					maskComposite: 'exclude',
-				}}
-			/>
-
 			{/* Left glow (drag-left feedback) */}
 			<motion.div
 				className="absolute inset-y-0 left-0 w-16 rounded-l-xl pointer-events-none"
