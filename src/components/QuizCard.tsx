@@ -224,7 +224,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 	// Only one direction is "active" based on dominant displacement axis.
 	// This prevents overlapping text when dragging diagonally.
 
-	/** Left emoji: visible at rest + when dragging left; fades when dragging right or down */
+	/** Left emoji: visible at rest + when dragging left; fades FAST when dragging right */
 	const leftEmojiOpacity = useTransform([x, y], (latest: number[]) => {
 		const lx = latest[0];
 		const ly = Math.max(latest[1], 0);
@@ -233,10 +233,11 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 
 		if (maxDisp < 10) return 1;
 		if (lx < 0 && absX >= ly) return 1; // dragging left: stay visible
-		return Math.max(0, 1 - (maxDisp - 10) / 30);
+		// Opposing emoji fades first (fast ramp: gone by ~25px)
+		return Math.max(0, 1 - (maxDisp - 5) / 20);
 	});
 
-	/** Right emoji: visible at rest + when dragging right; fades when dragging left or down */
+	/** Right emoji: visible at rest + when dragging right; fades FAST when dragging left */
 	const rightEmojiOpacity = useTransform([x, y], (latest: number[]) => {
 		const lx = latest[0];
 		const ly = Math.max(latest[1], 0);
@@ -245,17 +246,19 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 
 		if (maxDisp < 10) return 1;
 		if (lx > 0 && absX >= ly) return 1; // dragging right: stay visible
-		return Math.max(0, 1 - (maxDisp - 10) / 30);
+		// Opposing emoji fades first (fast ramp: gone by ~25px)
+		return Math.max(0, 1 - (maxDisp - 5) / 20);
 	});
 
-	/** Down arrow: visible at rest, fades on any drag */
+	/** Down arrow: visible at rest, fades AFTER the opposing emoji (slower ramp) */
 	const downArrowOpacity = useTransform([x, y], (latest: number[]) => {
 		const absX = Math.abs(latest[0]);
 		const posY = Math.max(latest[1], 0);
 		const maxDisp = Math.max(absX, posY);
 
 		if (maxDisp < 10) return 1;
-		return Math.max(0, 1 - (maxDisp - 10) / 30);
+		// Down arrow fades second (delayed start at 20px, gone by ~55px)
+		return Math.max(0, 1 - (maxDisp - 20) / 35);
 	});
 
 	/** Left answer text: only when dragging left AND horizontal is dominant */
@@ -448,7 +451,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 			style={{
 				x, y, rotate, zIndex: 10, touchAction: 'none',
 				border: '2px solid transparent',
-				background: `linear-gradient(#1E1E1E, #1E1E1E) padding-box, linear-gradient(to right, ${leftColour}, ${rightColour}) border-box`,
+				background: `linear-gradient(#1E1E1E, #1E1E1E) padding-box, linear-gradient(to right, ${leftColour}80, ${rightColour}80) border-box`,
 			}}
 			drag={!isExiting && !introPlaying}
 			dragMomentum={false}
