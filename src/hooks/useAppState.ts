@@ -3,7 +3,7 @@ import type { Phase } from '@/data/types';
 
 /**
  * Screen flow state machine.
- * Manages transitions: landing → tutorial → phase1 → phase2 → phase3 → reveal → results → prompts → done
+ * Manages transitions: landing → phase1 → phase2 → phase3 → reveal → prompts → done
  */
 
 /** Defines valid transitions from each phase */
@@ -13,8 +13,8 @@ const TRANSITIONS: Record<Phase, Phase | null> = {
 	phase1: 'phase2',
 	phase2: 'phase3',
 	phase3: 'reveal',
-	reveal: 'results',
-	results: 'prompts',
+	reveal: 'prompts',
+	results: 'prompts', // results merged into reveal; this is a fallback redirect
 	prompts: 'done',
 	done: null,
 };

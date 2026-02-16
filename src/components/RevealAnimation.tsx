@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { QuizResult, ArchetypeId } from '@/data/types';
-import { ARCHETYPES } from '@/data/archetypes';
+import type { QuizResult, ArchetypeId, CompatibilityTier } from '@/data/types';
+import { ARCHETYPES, COMBO_TYPES } from '@/data/archetypes';
+import { COMPATIBILITY, COMPATIBILITY_TIERS } from '@/data/compatibility';
 
 // ─── Props ───
 
@@ -54,6 +55,15 @@ const ORB_STARTS = [
 ];
 
 const ARCHETYPE_IDS: ArchetypeId[] = ['pulse', 'glow', 'cozy', 'lore'];
+
+/** Tier display config */
+const TIER_CONFIG: Record<CompatibilityTier, { heading: string }> = {
+	bestBets: { heading: 'Your Best Bets' },
+	goodToKnow: { heading: 'Might Happen' },
+	mightWorkIf: { heading: 'Proceed with Caution' },
+};
+
+const TIER_ORDER: CompatibilityTier[] = ['bestBets', 'goodToKnow', 'mightWorkIf'];
 
 // ─── Component ───
 
@@ -333,43 +343,46 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 							</div>
 						</div>
 
-						{/* Karma Earned */}
-						<div className="bg-surface rounded-xl p-5">
-							<h3 className="font-display text-[32px] text-accent mb-5">
-								YOU EARNED 100 PX
-							</h3>
-							<div className="space-y-3">
-								{ARCHETYPE_IDS.map((archetype) => {
-									const info = ARCHETYPES[archetype];
-									const karmaPts = result.karma[archetype];
-									const isPrimary = archetype === result.comboType.primary;
-									return (
-										<div key={archetype} className="flex items-center justify-between">
-											<div className="flex items-center gap-2">
-												<span className="text-[18px]">{info.emoji}</span>
-												<span
-													className="font-body text-[20px] font-medium"
-													style={{ color: info.color }}
-												>
-													{info.name}
-												</span>
-												{isPrimary && (
-													<span className="text-[13px] px-2 py-0.5 rounded bg-surface-2 text-text-secondary font-body">
-														primary
-													</span>
-												)}
-											</div>
-											<span
-												className="font-body text-[20px] font-medium tabular-nums"
-												style={{ color: info.color }}
-											>
-												+{karmaPts} px
-											</span>
-										</div>
-									);
-								})}
-							</div>
-						</div>
+						{/* Compatibility tiers */}
+						{TIER_ORDER.map((tier) => {
+							const config = TIER_CONFIG[tier];
+							const tiers = COMPATIBILITY_TIERS[result.comboType.id];
+							const compatTexts = COMPATIBILITY[result.comboType.id];
+							const typeIds = tiers[tier];
+
+							return (
+								<div key={tier} className="bg-surface rounded-xl p-5">
+									<h3 className="font-display text-[30px] text-text mb-5">
+										{config.heading}
+									</h3>
+									<div className="space-y-6">
+										{typeIds.map((targetId) => {
+											const targetType = COMBO_TYPES[targetId];
+											const compatText = compatTexts[targetId];
+
+											return (
+												<div key={targetId}>
+													<div className="flex items-center gap-2.5 mb-2">
+														<span className="text-[24px]">{targetType.emoji}</span>
+														<div>
+															<p className="font-display text-[22px] text-text leading-tight">
+																{targetType.name}
+															</p>
+															<p className="font-body text-[18px] text-text-muted">
+																{ARCHETYPES[targetType.primary].name}/{ARCHETYPES[targetType.secondary].name}
+															</p>
+														</div>
+													</div>
+													<p className="font-body text-[18px] text-text-secondary leading-[1.6]">
+														{compatText}
+													</p>
+												</div>
+											);
+										})}
+									</div>
+								</div>
+							);
+						})}
 
 						{/* CTA */}
 						<div className="flex justify-center pt-4">
@@ -379,7 +392,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 									active:scale-[0.97] transition-transform duration-100 ease-out
 									shadow-elevated cursor-pointer"
 							>
-								See Compatibility →
+								Show your vibe →
 							</button>
 						</div>
 					</motion.div>

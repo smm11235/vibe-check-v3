@@ -9,7 +9,7 @@ interface LayoutProps {
  * Constrains content to 393px max-width (iPhone 16 Pro) and centres on larger viewports.
  * Uses h-dvh for exact viewport height, with safe-area insets for notch/island/toolbar.
  * The inner container fills remaining space after safe-area padding — each screen
- * handles its own scrolling (e.g., ResultsScreen has overflow-y-auto).
+ * handles its own scrolling (e.g., RevealAnimation has overflow-y-auto).
  */
 export function Layout({ children }: LayoutProps) {
 	return (

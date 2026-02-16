@@ -447,11 +447,9 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 	return (
 		<motion.div
 			ref={cardRef}
-			className="absolute inset-0 m-auto w-[90%] max-w-[370px] h-[60vh] rounded-xl shadow-card overflow-hidden select-none"
+			className="absolute inset-0 m-auto w-[90%] max-w-[370px] h-[60vh] bg-surface rounded-xl shadow-card overflow-hidden select-none"
 			style={{
 				x, y, rotate, zIndex: 10, touchAction: 'none',
-				border: '2px solid transparent',
-				background: `linear-gradient(#1E1E1E, #1E1E1E) padding-box, linear-gradient(to right, color-mix(in srgb, ${leftColour} 50%, transparent), color-mix(in srgb, ${rightColour} 50%, transparent)) border-box`,
 			}}
 			drag={!isExiting && !introPlaying}
 			dragMomentum={false}
@@ -463,6 +461,15 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 			transition={{ type: 'spring', stiffness: 300, damping: 25 }}
 			whileDrag={{ scale: 1.02 }}
 		>
+			{/* Top gradient strip (left archetype → right archetype) */}
+			<div
+				className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl pointer-events-none"
+				style={{
+					background: `linear-gradient(to right, ${leftColour}, ${rightColour})`,
+					opacity: 0.5,
+				}}
+			/>
+
 			{/* Left glow (drag-left feedback) */}
 			<motion.div
 				className="absolute inset-y-0 left-0 w-16 rounded-l-xl pointer-events-none"

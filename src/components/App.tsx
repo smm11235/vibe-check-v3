@@ -4,7 +4,6 @@ import { Layout } from '@/components/Layout';
 import { Landing } from '@/components/Landing';
 import { Quiz } from '@/components/Quiz';
 import { RevealAnimation } from '@/components/RevealAnimation';
-import { ResultsScreen } from '@/components/ResultsScreen';
 import { ProfilePrompts } from '@/components/ProfilePrompts';
 import { DoneScreen } from '@/components/DoneScreen';
 import { useAppState } from '@/hooks/useAppState';
@@ -47,16 +46,6 @@ export function App() {
 				return (
 					<RevealAnimation
 						key="reveal"
-						result={quizResult}
-						onContinue={() => goTo('results')}
-					/>
-				);
-
-			case 'results':
-				if (!quizResult) return null;
-				return (
-					<ResultsScreen
-						key="results"
 						result={quizResult}
 						onContinue={() => goTo('prompts')}
 					/>

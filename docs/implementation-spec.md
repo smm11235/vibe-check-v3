@@ -10,8 +10,8 @@ Target: iPhone 16 Pro (393×852), GitHub Pages deployment.
 - **Phase 1 (Foundation)**: Complete
 - **Phase 2 (Data & Engine)**: Complete — 75 unit tests passing
 - **Phase 3 (Quiz UI)**: Complete — swipeable cards, physics-based exits, emoji reactions, answer randomisation
-- **Phase 4 (Results)**: Complete — reveal animation (with archetype details), compatibility screen, profile prompts, done screen
-- **Phase 5 (Polish)**: In progress — font/contrast pass, card layout, progress bar rework, post-quiz page restructure all done; share card and localStorage remain
+- **Phase 4 (Results)**: Complete — reveal animation (with archetype details + compatibility tiers), profile prompts, done screen. ResultsScreen merged into RevealAnimation.
+- **Phase 5 (Polish)**: In progress — Reigns-style hidden answers, font/contrast pass, card layout, progress bar rework, post-quiz page restructure, landing+tutorial merge all done; share card and localStorage remain
 
 ---
 
@@ -146,14 +146,18 @@ Playable quiz with swipeable cards, gesture recognition, and phase transitions.
    - Computes final result when complete (including mirror-flip score adjustment for consistent percentages)
 
 2. Build QuizCard component (src/components/QuizCard.tsx):
-   - Framer Motion drag gestures: left = Option A, right = Option B, up = skip
-   - Drag thresholds: horizontal >80px, vertical >60px
+   - Reigns-style hidden answers: answers invisible at rest, revealed on drag
+   - Framer Motion drag gestures: left = Option A, right = Option B, down = skip
+   - Hybrid selection threshold: position + velocity × 0.15 (L/R: 110px, down: 250px)
    - During drag: card follows finger, rotate ±8°, side glow in archetype color
-   - On release past threshold: animate out (slide + rotate)
+   - On release past threshold: physics-based fly-off animation
    - On release below threshold: spring back to center
    - Tap fallback: left half = A, right half = B
-   - Card shows: question text (center), option A (left side), option B (right side)
-   - Card styling: #1E1E1E bg, 20px border radius, shadow, 90% width, 65% height
+   - Layout: question top (px-12), answer text middle (px-14, same font, #D4D4D4), emojis + ↓ bottom row (pb-80px)
+   - Top gradient strip: left archetype → right archetype colour, 3px, 50% opacity
+   - Intro sway animation on first card (demo left/right with finger dot)
+   - Answer randomisation via deterministic hash (prevents positional bias)
+   - Card styling: #1E1E1E bg, rounded-xl, shadow, 90% width, 60vh height
    - AnimatePresence for enter/exit transitions
 
 3. Build card stack (multiple cards rendered, only top is interactive):
@@ -166,14 +170,12 @@ Playable quiz with swipeable cards, gesture recognition, and phase transitions.
    - Never decreases (use max of current vs displayed)
    - Percentage text right-aligned in #666666
 
-5. Build Tutorial card:
-   - "Swipe to vibe" heading
-   - Swipe direction instructions
-   - "No wrong answers. Go with your gut."
-   - Dismiss on any swipe or "Got it" tap
+5. Tutorial merged into Landing screen:
+   - Single page with intro, swipe instructions (👇 skip), "No wrong answers", "Let's Go" CTA
+   - Landing transitions directly to phase1 (no separate tutorial phase)
 
 6. Build swipe hints below card:
-   - "← Left  ↑ Skip  Right →" in #444444
+   - "← Left  ↓ Skip  Right →" in #444444
    - Fade out after 3 answered questions
    - Re-appear after 5s idle
 
@@ -181,7 +183,7 @@ Playable quiz with swipeable cards, gesture recognition, and phase transitions.
    - On answer, selected archetype emoji floats up and fades (0.6s, ease-out)
 
 8. Wire everything together:
-   - Landing → Tutorial → Quiz cards → (engine determines completion) → transition to reveal
+   - Landing → Quiz cards → (engine determines completion) → transition to reveal
    - Phase transitions invisible to user (cards keep flowing)
 
 9. Add haptic feedback (navigator.vibrate):
@@ -201,8 +203,9 @@ Playable quiz with swipeable cards, gesture recognition, and phase transitions.
 
 ### Key Files Created/Modified
 - src/hooks/useQuizEngine.ts
-- src/components/QuizCard.tsx, ProgressBar.tsx, Tutorial.tsx, SwipeHints.tsx, EmojiReaction.tsx
+- src/components/QuizCard.tsx, ProgressBar.tsx, SwipeHints.tsx, EmojiReaction.tsx
 - src/components/Quiz.tsx (wires everything together)
+- src/components/Landing.tsx (merged tutorial into landing)
 
 ---
 
@@ -225,21 +228,12 @@ Reveal animation, results display, archetype detail, and profile prompt selectio
    - Details section (scrollable, appears after ~3.5s):
      - Description card with gradient left border (primary → secondary color)
      - Primary/Secondary archetype badges
-     - Vibe DNA breakdown: 4 horizontal bars, staggered animation (200ms each)
-     - Karma earned: "YOU EARNED 100 PX" with per-archetype "+N px" rows
-   - CTA: "See Compatibility →"
-
-2. Build ResultsScreen component (src/components/ResultsScreen.tsx):
-   - Compatibility-focused page (archetype details are on the reveal page)
-   - Type header: emoji, name, archetype pair
-   - "What you vibe with" section (from comboType.clickWith)
-   - "What drains you" section (from comboType.clashWith)
-   - Compatibility tiers (from COMPATIBILITY_TIERS):
-     - Best Bets: ~4 types, green marker
-     - Good to Know: ~4 types, yellow marker
-     - Might Work If...: ~3 types, pink marker
-     - Each shows: emoji, type name, archetype pair, full compatibility description
+     - Vibe DNA breakdown: 4 horizontal bars (12px), staggered animation (200ms each)
+     - Compatibility tiers (from COMPATIBILITY_TIERS, merged from old ResultsScreen):
+       - Your Best Bets / Might Happen / Proceed with Caution
+       - Each shows: emoji, type name (22px), archetype pair (18px), full compatibility description
    - CTA: "Show your vibe →"
+   - Note: ResultsScreen was merged into this component; there is no separate results page
 
 3. Build ProfilePrompts component (src/components/ProfilePrompts.tsx):
    - Photo-first UX with expandable prompt cards
@@ -266,8 +260,9 @@ Reveal animation, results display, archetype detail, and profile prompt selectio
 - All content pulled from data files (no hardcoded strings)
 
 ### Key Files Created/Modified
-- src/components/RevealAnimation.tsx, ResultsScreen.tsx, ProfilePrompts.tsx, DoneScreen.tsx
+- src/components/RevealAnimation.tsx, ProfilePrompts.tsx, DoneScreen.tsx
 - Confetti and typewriter effects built inline with Framer Motion (no separate utility components needed)
+- Note: Tutorial.tsx and ResultsScreen.tsx were deleted after merging into Landing.tsx and RevealAnimation.tsx respectively
 
 ---
 
@@ -278,15 +273,13 @@ Production-quality feel. Every interaction has intention. Responsive across devi
 
 ### Tasks
 1. Motion design audit - review every transition:
-   - Landing → Tutorial: fade + scale
-   - Tutorial → Quiz: card slide in from bottom
-   - Card swipe: spring physics (stiffness ~300, damping ~30)
-   - Card enter: slide up from bottom with slight scale
-   - Phase transitions: subtle background color shift (barely perceptible)
+   - Landing → Quiz: fade (AnimatePresence mode="wait")
+   - Card swipe: physics-based fly-off (speed-proportional duration)
+   - Card enter: spring scale-in (stiffness 300, damping 25)
+   - Phase transitions: invisible (seamless card flow)
    - Quiz → Reveal: dramatic black fade
-   - Reveal → Results: slide up
-   - Results scroll: parallax on header card
-   - Results → Prompts: slide left
+   - Reveal scroll: hero + details sections
+   - Reveal → Prompts: fade
 
 2. Micro-interactions:
    - Card hover/press state (slight scale 0.98)
