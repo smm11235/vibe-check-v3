@@ -397,9 +397,9 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 							</button>
 							<button
 								onClick={() => setShowShare(true)}
-								className="w-[52px] h-[52px] rounded-full bg-surface flex items-center justify-center
+								className="w-[52px] rounded-full bg-accent text-bg flex items-center justify-center
 									active:scale-[0.95] transition-transform duration-100 ease-out
-									shadow-elevated cursor-pointer text-text-secondary"
+									shadow-elevated cursor-pointer"
 							>
 								<ShareIcon />
 							</button>
@@ -500,9 +500,9 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 							</button>
 							<button
 								onClick={() => setShowShare(true)}
-								className="w-[52px] h-[52px] rounded-full bg-surface flex items-center justify-center
+								className="w-[52px] rounded-full bg-accent text-bg flex items-center justify-center
 									active:scale-[0.95] transition-transform duration-100 ease-out
-									shadow-elevated cursor-pointer text-text-secondary"
+									shadow-elevated cursor-pointer"
 							>
 								<ShareIcon />
 							</button>
