@@ -3,9 +3,9 @@ import { quizReducer, createInitialState } from '../useQuizEngine';
 
 describe('useQuizEngine reducer', () => {
 	describe('initial state', () => {
-		it('starts in phase1 with a question selected', () => {
+		it('starts in active state with a question selected', () => {
 			const state = createInitialState();
-			expect(state.internalPhase).toBe('phase1');
+			expect(state.internalPhase).toBe('active');
 			expect(state.currentQuestion).not.toBeNull();
 			expect(state.questionsAnswered).toBe(0);
 			expect(state.questionsSkipped).toBe(0);

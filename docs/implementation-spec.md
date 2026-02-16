@@ -8,10 +8,11 @@ Target: iPhone 16 Pro (393×852), GitHub Pages deployment.
 
 ### Current Status (Feb 2026)
 - **Phase 1 (Foundation)**: Complete
-- **Phase 2 (Data & Engine)**: Complete — 75 unit tests passing
+- **Phase 2 (Data & Engine)**: Complete
 - **Phase 3 (Quiz UI)**: Complete — swipeable cards, physics-based exits, emoji reactions, answer randomisation
-- **Phase 4 (Results)**: Complete — reveal animation (with archetype details + compatibility tiers), profile prompts, done screen. ResultsScreen merged into RevealAnimation.
-- **Phase 5 (Polish)**: In progress — Reigns-style hidden answers, font/contrast pass, card layout, progress bar rework, post-quiz page restructure, landing+tutorial merge, archetype info modal, share button placeholder all done; full share card generation and localStorage remain
+- **Phase 4 (Results)**: Complete — reveal animation (with archetype details + compatibility tiers), profile prompts, done screen
+- **Phase 5 (Polish)**: Complete — Reigns-style hidden answers, font/contrast pass, card layout, progress bar rework, post-quiz page restructure, landing+tutorial merge, archetype info modal, share button placeholder
+- **Phase 6 (Stem + Pool)**: Complete — 25 stems, 77 pools, ~350 weighted options, inverse scoring, legacy code removed. 76 tests passing, 394KB bundle.
 
 ---
 
@@ -361,8 +362,9 @@ Production-quality feel. Every interaction has intention. Responsive across devi
 ### Goal
 Replace the 198 fixed binary questions with a dynamic stem + pool system that generates quiz matchups at runtime. Richer scoring, more variety, pithier content.
 
-### Background
-See `docs/content-experiment.md` for full architecture description, data structures, and design rationale. Content lives in `src/data/stems-and-pools.ts` (25 stems, 73 pools, ~350 answer options).
+### Status: Complete
+
+Legacy 3-phase system and 198 binary questions removed (git-recoverable). Content now in `src/data/questions.ts` (25 stems, 77 pools, ~350 answer options). Engine simplified to single-phase pool system. See `docs/content-experiment.md` for architecture.
 
 ### Tasks
 1. Add new types to `src/data/types.ts` (or import from stems-and-pools.ts):
@@ -415,29 +417,20 @@ See `docs/content-experiment.md` for full architecture description, data structu
    - Termination triggers at expected thresholds
    - No-repeat: stems and pools don't repeat prematurely
 
-### Acceptance Criteria
-- Feature flag allows switching between old and new content systems
-- Quiz plays through with stem+pool content, no repeated pools
-- Stems rotate variant phrasings on re-use
-- Weighted scoring produces differentiated archetype results
-- ~15-20 questions per session (tunable)
-- All existing reveal/results/compatibility screens work unchanged
-- Unit tests pass for selection, scoring, and termination
-- Old `questions.ts` data preserved as fallback
+### Key Files
+- `src/data/questions.ts` — 25 stems, 77 pools, ~350 weighted options (renamed from stems-and-pools.ts)
+- `src/engine/pool-selection.ts` — Selection engine: stem priority, no-repeat pools, archetype-diverse options
+- `src/engine/scoring.ts` — `applyWeightedAnswer()`, `buildPoolResult()`, negative-safe normalisation
+- `src/engine/termination.ts` — `shouldEndPoolQuiz()`: 10 min, 20 max, 2.0 lead gap
+- `src/engine/progress.ts` — `calculatePoolProgress()`: linear, capped at 0.99
+- `src/hooks/useQuizEngine.ts` — Pool-only engine (legacy code removed)
+- `src/engine/__tests__/pool-selection.test.ts` — 11 pool selection tests
+- `docs/content-experiment.md` — Architecture docs
 
-### Key Files Created/Modified
-- `src/data/stems-and-pools.ts` (new — already created, content complete)
-- `src/engine/pool-selection.ts` (new)
-- `src/engine/scoring.ts` (add `applyWeightedAnswer`)
-- `src/engine/termination.ts` (simplify for single-phase)
-- `src/hooks/useQuizEngine.ts` (feature flag, pool state tracking)
-- `src/components/QuizCard.tsx` (render stem text + pool options)
-- `src/engine/__tests__/pool-selection.test.ts` (new)
-- `docs/content-experiment.md` (new — architecture docs, removable after integration)
-
-### Dependencies
-- Phase 5 (Polish) should be substantially complete before integrating — this changes the core quiz loop
-- Content in `stems-and-pools.ts` is self-contained and doesn't depend on any other phase
+### Removed (git-recoverable)
+- `src/data/legacy-questions.ts` — 198 binary questions (old questions.ts)
+- `src/engine/selection.ts` — 3-phase adaptive question selection
+- Legacy 3-phase reducer code in useQuizEngine.ts
 
 ---
 

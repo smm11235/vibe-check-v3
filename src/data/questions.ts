@@ -65,7 +65,7 @@ export const QUESTION_STEMS: QuestionStem[] = [
   // ── Preference / Taste ──
   {
     id: 'stem_better',
-    text: 'Which is better?',
+    text: 'And the winner is:',
     variants: ['Pick one.', 'Choose your fighter.'],
     pools: ['pool_music_artists', 'pool_shows_movies', 'pool_games', 'pool_social_platforms', 'pool_vibes', 'pool_date_spots', 'pool_celebrities'],
   },
@@ -80,7 +80,7 @@ export const QUESTION_STEMS: QuestionStem[] = [
     // opinionated statements, you're endorsing one.
     id: 'stem_hot_take',
     text: 'Hot take!',
-    variants: ['Unpopular opinion:'],
+    variants: ['It\'s a fact!'],
     pools: ['pool_hottake_life', 'pool_hottake_social', 'pool_hottake_dating', 'pool_hottake_culture', 'pool_hottake_gen', 'pool_hottake_self'],
   },
   {
@@ -129,22 +129,22 @@ export const QUESTION_STEMS: QuestionStem[] = [
   {
     id: 'stem_more_you',
     text: 'More you?',
-    variants: ['Be honest:'],
+    variants: ['I am:'],
     pools: ['pool_you_social', 'pool_you_conflict', 'pool_you_friend', 'pool_you_energy', 'pool_you_mornings'],
   },
   {
     // Reframed: "which of these do you secretly do?" — self-identification.
     id: 'stem_guilty',
-    text: 'Guilty pleasure:',
-    variants: ['No judgement:'],
+    text: 'Your guilty pleasure:',
+    variants: ['Don\'t judge me for:'],
     pools: ['pool_guilty_media', 'pool_guilty_habits'],
   },
   {
     // Reframed from "your toxic trait?" to clear self-identification:
     // "which of these can't you help doing?"
     id: 'stem_cant_help',
-    text: 'Can\'t help it:',
-    variants: ['You do this:'],
+    text: 'I can\'t help:',
+    variants: ['You\'re always:'],
     pools: ['pool_toxic_social', 'pool_toxic_dating', 'pool_toxic_habits'],
   },
   {
