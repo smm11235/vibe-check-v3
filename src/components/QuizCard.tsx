@@ -447,7 +447,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 			className="absolute inset-0 m-auto w-[90%] max-w-[370px] h-[60vh] rounded-xl shadow-card overflow-hidden select-none"
 			style={{
 				x, y, rotate, zIndex: 10, touchAction: 'none',
-				border: '6px solid transparent',
+				border: '2px solid transparent',
 				background: `linear-gradient(#1E1E1E, #1E1E1E) padding-box, linear-gradient(to right, ${leftColour}, ${rightColour}) border-box`,
 			}}
 			drag={!isExiting && !introPlaying}
