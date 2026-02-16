@@ -208,7 +208,7 @@ export function ProfilePrompts({ result, onContinue }: ProfilePromptsProps) {
 				<h2 className="font-display text-[36px] text-text mb-1">
 					Show Your Vibe
 				</h2>
-				<p className="font-display text-[24px] text-text mb-1">
+				<p className="font-display text-[30px] text-text mb-2">
 					{result.comboType.emoji} {result.comboType.name}
 				</p>
 				<p className="font-body text-[17px] text-text-secondary mb-6 max-w-[320px]">
