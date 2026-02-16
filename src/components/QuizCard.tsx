@@ -63,6 +63,8 @@ interface QuizCardProps {
 	onExitStart?: (side: 'left' | 'right' | 'up') => void;
 	isTop: boolean;
 	stackIndex: number;
+	/** Show intro demo animation (sway left then right with finger dot) */
+	showIntro?: boolean;
 }
 
 // ─── Helpers ───
@@ -145,11 +147,13 @@ function haptic(pattern: number | number[]) {
  * Selection uses a hybrid threshold: position + velocity * factor.
  * Fast flicks select from shorter distances; slow releases need more distance.
  */
-export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stackIndex }: QuizCardProps) {
+export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stackIndex, showIntro }: QuizCardProps) {
 	const cardRef = useRef<HTMLDivElement>(null);
 	const thresholdFiredRef = useRef(false);
 	const [isExiting, setIsExiting] = useState(false);
 	const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const [introPlaying, setIntroPlaying] = useState(false);
+	const [introDone, setIntroDone] = useState(false);
 
 	// Randomise which option appears on which side (stable per question)
 	const isSwapped = useMemo(() => shouldSwapOptions(question.id), [question.id]);
@@ -183,6 +187,33 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 	// Motion values for drag tracking
 	const x = useMotionValue(0);
 	const y = useMotionValue(0);
+
+	// Finger dot position (tracks x during intro, hidden otherwise)
+	const dotX = useTransform(x, (v) => v);
+
+	// Intro demo animation: sway left, pause, sway right, pause, return to centre
+	useEffect(() => {
+		if (!showIntro || introDone || !isTop) return;
+
+		setIntroPlaying(true);
+		const introDistance = 70; // how far the card sways
+		const sway = { type: 'spring' as const, stiffness: 120, damping: 18 };
+
+		const timeout = setTimeout(async () => {
+			// Sway left
+			await animate(x, -introDistance, sway);
+			await new Promise((r) => setTimeout(r, 400));
+			// Sway right
+			await animate(x, introDistance, sway);
+			await new Promise((r) => setTimeout(r, 400));
+			// Return to centre
+			await animate(x, 0, sway);
+			setIntroPlaying(false);
+			setIntroDone(true);
+		}, 600); // brief delay before starting
+
+		return () => clearTimeout(timeout);
+	}, [showIntro, introDone, isTop]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	// Derived transforms
 	const rotate = useTransform(x, [-200, 0, 200], [-MAX_ROTATION, 0, MAX_ROTATION]);
@@ -415,7 +446,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 			ref={cardRef}
 			className="absolute inset-0 m-auto w-[90%] max-w-[370px] h-[60vh] bg-surface rounded-xl shadow-card overflow-hidden select-none"
 			style={{ x, y, rotate, zIndex: 10, touchAction: 'none' }}
-			drag={!isExiting}
+			drag={!isExiting && !introPlaying}
 			dragMomentum={false}
 			onDrag={handleDrag}
 			onDragEnd={handleDragEnd}
@@ -498,6 +529,16 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 					</motion.span>
 				</div>
 			</div>
+
+			{/* Finger dot — visible only during intro animation */}
+			{introPlaying && (
+				<motion.div
+					className="absolute bottom-5 left-1/2 pointer-events-none"
+					style={{ x: dotX, marginLeft: -8 }}
+				>
+					<div className="w-4 h-4 rounded-full bg-white/60 shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
+				</motion.div>
+			)}
 		</motion.div>
 	);
 }

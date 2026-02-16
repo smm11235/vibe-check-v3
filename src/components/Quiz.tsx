@@ -134,6 +134,7 @@ export function Quiz({ onComplete }: QuizProps) {
 							onExitStart={handleExitStart}
 							isTop={true}
 							stackIndex={0}
+							showIntro={engine.questionsAnswered === 0}
 						/>
 					)}
 				</AnimatePresence>
