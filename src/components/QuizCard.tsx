@@ -460,8 +460,8 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 			<div
 				className="absolute inset-0 rounded-xl pointer-events-none"
 				style={{
-					border: '1.5px solid transparent',
-					background: `linear-gradient(to right, ${leftColour}50, ${rightColour}50) border-box`,
+					border: '2.5px solid transparent',
+					background: `linear-gradient(to right, ${leftColour}70, ${rightColour}70) border-box`,
 					WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
 					WebkitMaskComposite: 'xor',
 					maskComposite: 'exclude',
@@ -529,7 +529,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 				</div>
 
 				{/* Bottom: emoji row pinned near bottom edge */}
-				<div className="flex items-center justify-between px-12 pb-[80px] shrink-0 pointer-events-none">
+				<div className="flex items-center justify-center gap-10 pb-[80px] shrink-0 pointer-events-none">
 					<motion.span className="text-[36px]" style={{ opacity: leftEmojiOpacity }}>
 						{leftOption.emoji}
 					</motion.span>
