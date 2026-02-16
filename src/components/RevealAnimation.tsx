@@ -56,6 +56,86 @@ const ORB_STARTS = [
 
 const ARCHETYPE_IDS: ArchetypeId[] = ['pulse', 'glow', 'cozy', 'lore'];
 
+// ─── Share Icon (SF Symbols–style box-with-arrow) ───
+
+function ShareIcon({ className }: { className?: string }) {
+	return (
+		<svg
+			className={className}
+			width="20"
+			height="20"
+			viewBox="0 0 20 20"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="1.8"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		>
+			<path d="M10 13V3" />
+			<path d="M6 7l4-4 4 4" />
+			<path d="M4 11v5a2 2 0 002 2h8a2 2 0 002-2v-5" />
+		</svg>
+	);
+}
+
+// ─── Placeholder Share Modal ───
+
+function ShareModal({ onClose }: { onClose: () => void }) {
+	return (
+		<motion.div
+			className="fixed inset-0 z-50 flex items-end justify-center"
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			exit={{ opacity: 0 }}
+			transition={{ duration: 0.2 }}
+		>
+			<motion.div
+				className="absolute inset-0 bg-black/60"
+				onClick={onClose}
+			/>
+			<motion.div
+				className="relative w-full max-w-[393px] bg-surface rounded-t-2xl overflow-hidden"
+				initial={{ y: '100%' }}
+				animate={{ y: 0 }}
+				exit={{ y: '100%' }}
+				transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+			>
+				<div className="flex justify-center pt-3 pb-2">
+					<div className="w-10 h-1 rounded-full bg-text-muted/40" />
+				</div>
+				<div className="px-6 pb-8 text-center space-y-4">
+					<h3 className="font-display text-[24px] text-text">
+						Share Your Vibe
+					</h3>
+					<p className="font-body text-[16px] text-text-secondary">
+						Sharing will be available in the full Yubo experience.
+					</p>
+					<div className="flex justify-center gap-4 py-4">
+						{['Messages', 'Instagram', 'Copy Link'].map((label) => (
+							<div key={label} className="flex flex-col items-center gap-2">
+								<div className="w-14 h-14 rounded-full bg-surface-2 flex items-center justify-center">
+									<span className="text-[24px]">
+										{label === 'Messages' ? '💬' : label === 'Instagram' ? '📷' : '🔗'}
+									</span>
+								</div>
+								<span className="font-body text-[12px] text-text-muted">
+									{label}
+								</span>
+							</div>
+						))}
+					</div>
+					<button
+						onClick={onClose}
+						className="font-body text-[16px] text-text-muted cursor-pointer px-6 py-2"
+					>
+						Done
+					</button>
+				</div>
+			</motion.div>
+		</motion.div>
+	);
+}
+
 /** Tier display config */
 const TIER_CONFIG: Record<CompatibilityTier, { heading: string }> = {
 	bestBets: { heading: 'Your Best Bets' },
@@ -79,6 +159,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 	const [typedText, setTypedText] = useState('');
 	const [showConfetti, setShowConfetti] = useState(false);
 	const [showDetails, setShowDetails] = useState(false);
+	const [showShare, setShowShare] = useState(false);
 	const detailsRef = useRef<HTMLDivElement>(null);
 
 	const primaryColour = ARCHETYPES[result.comboType.primary].color;
@@ -305,7 +386,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 						</div>
 
 						{/* Mirrored CTA after description */}
-						<div className="flex justify-center">
+						<div className="flex justify-center gap-3">
 							<button
 								onClick={onContinue}
 								className="bg-accent text-bg font-body font-semibold text-[18px] px-10 py-3.5 rounded-full
@@ -313,6 +394,14 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 									shadow-elevated cursor-pointer"
 							>
 								Show your vibe →
+							</button>
+							<button
+								onClick={() => setShowShare(true)}
+								className="w-[52px] h-[52px] rounded-full bg-surface flex items-center justify-center
+									active:scale-[0.95] transition-transform duration-100 ease-out
+									shadow-elevated cursor-pointer text-text-secondary"
+							>
+								<ShareIcon />
 							</button>
 						</div>
 
@@ -400,7 +489,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 						})}
 
 						{/* CTA */}
-						<div className="flex justify-center pt-4">
+						<div className="flex justify-center gap-3 pt-4">
 							<button
 								onClick={onContinue}
 								className="bg-accent text-bg font-body font-semibold text-[18px] px-10 py-3.5 rounded-full
@@ -409,9 +498,22 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 							>
 								Show your vibe →
 							</button>
+							<button
+								onClick={() => setShowShare(true)}
+								className="w-[52px] h-[52px] rounded-full bg-surface flex items-center justify-center
+									active:scale-[0.95] transition-transform duration-100 ease-out
+									shadow-elevated cursor-pointer text-text-secondary"
+							>
+								<ShareIcon />
+							</button>
 						</div>
 					</motion.div>
 				)}
+			</AnimatePresence>
+
+			{/* Share modal */}
+			<AnimatePresence>
+				{showShare && <ShareModal onClose={() => setShowShare(false)} />}
 			</AnimatePresence>
 		</motion.div>
 	);
