@@ -11,7 +11,7 @@ Target: iPhone 16 Pro (393×852), GitHub Pages deployment.
 - **Phase 2 (Data & Engine)**: Complete — 75 unit tests passing
 - **Phase 3 (Quiz UI)**: Complete — swipeable cards, physics-based exits, emoji reactions, answer randomisation
 - **Phase 4 (Results)**: Complete — reveal animation (with archetype details + compatibility tiers), profile prompts, done screen. ResultsScreen merged into RevealAnimation.
-- **Phase 5 (Polish)**: In progress — Reigns-style hidden answers, font/contrast pass, card layout, progress bar rework, post-quiz page restructure, landing+tutorial merge all done; share card and localStorage remain
+- **Phase 5 (Polish)**: In progress — Reigns-style hidden answers, font/contrast pass, card layout, progress bar rework, post-quiz page restructure, landing+tutorial merge, archetype info modal, share button placeholder all done; full share card generation and localStorage remain
 
 ---
 
@@ -171,8 +171,16 @@ Playable quiz with swipeable cards, gesture recognition, and phase transitions.
    - Percentage text right-aligned in #666666
 
 5. Tutorial merged into Landing screen:
-   - Single page with intro, swipe instructions (👇 skip), "No wrong answers", "Let's Go" CTA
+   - Single page with intro, swipe instructions (👇 skip), "No wrong answers"
+   - Two CTAs side by side: "What Vibes?" (opens info modal) | "Let's Go" (starts quiz)
    - Landing transitions directly to phase1 (no separate tutorial phase)
+
+5b. Build ArchetypeInfoModal component (src/components/ArchetypeInfoModal.tsx):
+   - Bottom sheet with pull-to-dismiss (manual touch handlers on drag handle for Safari compat)
+   - Intro paragraph explaining Vibes and Archetypes
+   - "The Four Vibes" section with emoji + name (coloured) + tagline
+   - "The Twelve Archetypes" section with emoji + name + tagline
+   - Accessible from Landing ("What Vibes?" button) and Quiz ("?" button, bottom-right)
 
 6. Build swipe hints below card:
    - "← Left  ↓ Skip  Right →" in #444444
@@ -206,6 +214,7 @@ Playable quiz with swipeable cards, gesture recognition, and phase transitions.
 - src/components/QuizCard.tsx, ProgressBar.tsx, SwipeHints.tsx, EmojiReaction.tsx
 - src/components/Quiz.tsx (wires everything together)
 - src/components/Landing.tsx (merged tutorial into landing)
+- src/components/ArchetypeInfoModal.tsx (info modal, used by Landing + Quiz)
 
 ---
 
@@ -232,10 +241,15 @@ Reveal animation, results display, archetype detail, and profile prompt selectio
      - Compatibility tiers (from COMPATIBILITY_TIERS, merged from old ResultsScreen):
        - Your Best Bets / Might Happen / Proceed with Caution
        - Each shows: emoji, type name (22px), archetype pair (18px), full compatibility description
-   - CTA: "Show your vibe →"
+   - "Vibe Results" section title above details
+   - CTA: "Show your vibe →" + share button (yellow circle, box-with-arrow icon)
+     - Mirrored after description card AND at bottom of page
+     - Share button opens placeholder bottom-sheet modal (Messages/Instagram/Copy Link)
    - Note: ResultsScreen was merged into this component; there is no separate results page
 
 3. Build ProfilePrompts component (src/components/ProfilePrompts.tsx):
+   - "Show Your Vibe" title + archetype name/emoji subtitle
+   - Encouraging message: "Your kindred spirits are out there..."
    - Photo-first UX with expandable prompt cards
    - Pre-filtered to combo-type-specific prompts (5 prompts from archetype data)
    - Tap to expand → photo picker modal (simulated) or text input fallback (150 char limit)
@@ -338,7 +352,7 @@ Production-quality feel. Every interaction has intention. Responsive across devi
 - All component files (animation refinement)
 - src/styles/globals.css (responsive breakpoints, safe areas)
 - src/hooks/useQuizEngine.ts (scores exposed for emoji reactions)
-- Note: ShareCard.tsx and localStorage persistence are stretch goals not yet implemented
+- Note: Placeholder share modal implemented (RevealAnimation.tsx). Full ShareCard.tsx (canvas-based image generation) and localStorage persistence are stretch goals not yet implemented
 
 ---
 

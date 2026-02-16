@@ -424,17 +424,3 @@ export const MIRROR_PAIRS: MirrorPair[] = [
   },
 ];
 
-// ─── Helper Functions ───
-
-export function getComboType(primary: ArchetypeId, secondary: ArchetypeId): ComboType {
-  const id = `${primary}_${secondary}` as ComboTypeId;
-  return COMBO_TYPES[id];
-}
-
-export function getMirrorType(comboId: ComboTypeId): ComboType {
-  return COMBO_TYPES[COMBO_TYPES[comboId].mirrorId];
-}
-
-export function getArchetypeColor(id: ArchetypeId): string {
-  return ARCHETYPES[id].color;
-}
