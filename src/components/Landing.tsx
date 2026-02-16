@@ -26,7 +26,7 @@ export function Landing({ onStart }: LandingProps) {
 			</h1>
 
 			<p className="font-body text-[19px] leading-[1.4] text-text-secondary max-w-[320px] mb-8">
-				Swipe your way through questions to discover your combo type - the unique mix of vibes that makes you, you. All in 5 minutes or less!
+				Swipe your way through questions to find your Archetype - the unique mix of vibes that makes you, you. All in 5 minutes or less!
 			</p>
 
 			{/* Swipe instructions */}

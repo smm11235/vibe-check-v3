@@ -205,11 +205,14 @@ export function ProfilePrompts({ result, onContinue }: ProfilePromptsProps) {
 		>
 			<div className="px-5 py-8 pb-24">
 				{/* Header */}
-				<h2 className="font-display text-[32px] text-text mb-2">
-					Show your vibe
+				<p className="font-body text-[15px] text-text-muted mb-1">
+					You're {/^[aeiou]/i.test(result.comboType.name) ? 'an' : 'a'}
+				</p>
+				<h2 className="font-display text-[32px] text-text mb-1">
+					{result.comboType.emoji} {result.comboType.name}
 				</h2>
-				<p className="font-body text-[17px] text-text-secondary mb-6">
-					Pick a prompt and add a photo - show the real you
+				<p className="font-body text-[17px] text-text-secondary mb-6 max-w-[320px]">
+					Your kindred spirits are out there, and they want to see the real you - show them what you're about!
 				</p>
 
 				{/* Prompt cards */}
