@@ -98,16 +98,16 @@ export function ArchetypeInfoModal({ isOpen, onClose }: ArchetypeInfoModalProps)
 						</div>
 
 						{/* Scrollable content (native scroll, unaffected by drag) */}
-						<div className="overflow-y-auto flex-1 px-5 pb-8 space-y-6">
+						<div className="overflow-y-auto flex-1 px-6 pb-8 space-y-6 text-left">
 							{/* Intro */}
-							<p className="font-body text-[18px] text-text-secondary leading-[1.5]">
+							<p className="font-body text-[16px] text-text-secondary leading-[1.5]">
 								The Vibe Check helps you find your Archetype based on your primary and secondary
-								Vibes - we answer "what moves you?" and "how do you do it?" There are four core
-								Vibes that combine to form twelve distinct Archetypes:
+								Vibes - we answer &ldquo;what moves you?&rdquo; and &ldquo;how do you do it?&rdquo;
+								There are four core Vibes that combine to form 12 distinct Archetypes:
 							</p>
 
 							{/* Core vibes heading */}
-							<h2 className="font-display text-[32px] text-text">The 4 Vibes</h2>
+							<h2 className="font-display text-[32px] text-text">The Four Vibes</h2>
 
 							{/* Core vibes */}
 							<div className="space-y-4">
@@ -117,10 +117,10 @@ export function ArchetypeInfoModal({ isOpen, onClose }: ArchetypeInfoModalProps)
 										<div key={id} className="flex items-start gap-3">
 											<span className="text-[28px] shrink-0">{info.emoji}</span>
 											<div>
-												<p className="font-display text-[24px] leading-tight" style={{ color: info.color }}>
+												<p className="font-display text-[24px] leading-tight text-left" style={{ color: info.color }}>
 													{info.name}
 												</p>
-												<p className="font-body text-[18px] text-text-secondary leading-[1.4]">
+												<p className="font-body text-[16px] text-text-secondary leading-[1.4] text-left">
 													{info.tagline}
 												</p>
 											</div>
@@ -133,7 +133,7 @@ export function ArchetypeInfoModal({ isOpen, onClose }: ArchetypeInfoModalProps)
 							<div className="h-px bg-divider" />
 
 							{/* Archetypes heading */}
-							<h2 className="font-display text-[32px] text-text">12 Archetypes</h2>
+							<h2 className="font-display text-[32px] text-text">The Twelve Archetypes</h2>
 
 							<div className="space-y-4">
 								{COMBO_ORDER.map((id) => {
@@ -142,10 +142,10 @@ export function ArchetypeInfoModal({ isOpen, onClose }: ArchetypeInfoModalProps)
 										<div key={id} className="flex items-start gap-3">
 											<span className="text-[24px] shrink-0">{combo.emoji}</span>
 											<div>
-												<p className="font-display text-[22px] text-text leading-tight">
+												<p className="font-display text-[22px] text-text leading-tight text-left">
 													{combo.name}
 												</p>
-												<p className="font-body text-[17px] text-text-secondary leading-[1.4]">
+												<p className="font-body text-[15px] text-text-secondary leading-[1.4] text-left">
 													{combo.tagline}
 												</p>
 											</div>
