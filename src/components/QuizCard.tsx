@@ -265,7 +265,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 		const absX = Math.abs(lx);
 
 		if (lx >= 0 || ly > absX) return 0;
-		return Math.min(Math.max((absX - 25) / 45, 0), 1);
+		return Math.min(Math.max((absX - 15) / 30, 0), 1);
 	});
 
 	/** Right answer text: only when dragging right AND horizontal is dominant */
@@ -274,7 +274,7 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 		const ly = Math.max(latest[1], 0);
 
 		if (lx <= 0 || ly > lx) return 0;
-		return Math.min(Math.max((lx - 25) / 45, 0), 1);
+		return Math.min(Math.max((lx - 15) / 30, 0), 1);
 	});
 
 	/** Skip text: only when dragging down AND vertical is dominant */
