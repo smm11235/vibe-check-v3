@@ -239,40 +239,48 @@ export function QuizCard({ question, onAnswer, onSkip, onExitStart, isTop, stack
 	const dotX = useTransform(x, (v) => v);
 	const dotY = useTransform(y, (v) => v);
 
-	// Intro demo animation: sway left → right → up → down → centre
+	// Intro demo animation: left → right → up → down → centre (continuous flow)
 	useEffect(() => {
 		if (!showIntro || introDone || !isTop) return;
 
 		setIntroPlaying(true);
-		const introDistance = 70;
-		const sway = { type: 'spring' as const, stiffness: 120, damping: 18 };
+		const dist = 70;
+		const downDist = 130; // far enough to reveal skip text (opacity ramps from 80px)
+		const sway = { type: 'spring' as const, stiffness: 160, damping: 20 };
 
 		const timeout = setTimeout(async () => {
-			// Sway left
-			await animate(x, -introDistance, sway);
-			await new Promise((r) => setTimeout(r, 200));
-			// Sway right
-			await animate(x, introDistance, sway);
-			await new Promise((r) => setTimeout(r, 200));
-			// Return to centre X before up sway
-			await animate(x, 0, sway);
+			// 1. Centre → left
+			await animate(x, -dist, sway);
+			await new Promise((r) => setTimeout(r, 120));
 
-			// Up sway (only for 3-choice)
+			// 2. Left → right (continuous, no centre stop)
+			await animate(x, dist, sway);
+			await new Promise((r) => setTimeout(r, 120));
+
+			// 3. Right → up (x returns to centre while y goes up simultaneously)
 			if (hasThreeOptions) {
-				await animate(y, -introDistance, sway);
-				await new Promise((r) => setTimeout(r, 200));
-				await animate(y, 0, sway);
-			}
+				const upDone = Promise.all([
+					animate(x, 0, sway),
+					animate(y, -dist, sway),
+				]);
+				await upDone;
+				await new Promise((r) => setTimeout(r, 120));
 
-			// Down sway (skip hint)
-			await animate(y, introDistance, sway);
-			await new Promise((r) => setTimeout(r, 200));
-			// Return to centre
+				// 4. Up → down (continuous, no centre stop)
+				await animate(y, downDist, sway);
+			} else {
+				// 2-choice: just return x to centre then sway down
+				await animate(x, 0, sway);
+				await animate(y, downDist, sway);
+			}
+			await new Promise((r) => setTimeout(r, 250));
+
+			// 5. Return to centre
 			await animate(y, 0, sway);
 
 			setIntroPlaying(false);
 			setIntroDone(true);
-		}, 600);
+		}, 500);
 
 		return () => clearTimeout(timeout);
 	}, [showIntro, introDone, isTop, hasThreeOptions]); // eslint-disable-line react-hooks/exhaustive-deps
