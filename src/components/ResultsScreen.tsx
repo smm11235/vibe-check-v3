@@ -12,11 +12,11 @@ interface ResultsScreenProps {
 
 // ─── Constants ───
 
-/** Tier display config: heading and decorative marker colour */
-const TIER_CONFIG: Record<CompatibilityTier, { heading: string; markerColour: string }> = {
-	bestBets: { heading: 'Best Bets', markerColour: 'text-glow' },
-	goodToKnow: { heading: 'Good to Know', markerColour: 'text-accent' },
-	mightWorkIf: { heading: 'Might Work If...', markerColour: 'text-pulse' },
+/** Tier display config: heading text */
+const TIER_CONFIG: Record<CompatibilityTier, { heading: string }> = {
+	bestBets: { heading: 'Best Bets' },
+	goodToKnow: { heading: 'Might Happen' },
+	mightWorkIf: { heading: 'Proceed with Caution' },
 };
 
 const TIER_ORDER: CompatibilityTier[] = ['bestBets', 'goodToKnow', 'mightWorkIf'];
@@ -26,10 +26,9 @@ const TIER_ORDER: CompatibilityTier[] = ['bestBets', 'goodToKnow', 'mightWorkIf'
 /**
  * Compatibility results page.
  *
- * Shows: type header, mirror type, what you vibe with / what drains you,
- * then all 11 other types categorised into three tiers (Best Bets, Good to Know,
- * Might Work If...). Each matchup shows the type name, archetype pair,
- * and full compatibility description.
+ * Shows: type header, then all 11 other types categorised into three tiers
+ * (Best Bets, Might Happen, Proceed with Caution). Each matchup shows the
+ * type name, archetype pair, and full compatibility description.
  */
 export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 	const { comboType } = result;
@@ -44,7 +43,7 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 			exit={{ opacity: 0, y: -20 }}
 			transition={{ duration: 0.4 }}
 		>
-			<div className="px-5 py-8 pb-24 space-y-6">
+			<div className="px-5 py-8 pb-24 space-y-8">
 
 				{/* Type header */}
 				<div className="text-center mb-2">
@@ -52,81 +51,40 @@ export function ResultsScreen({ result, onContinue }: ResultsScreenProps) {
 					<h2 className="font-display text-[42px] leading-[1.1] text-text mt-2">
 						{comboType.name}
 					</h2>
-					<p className="font-body text-[16px] text-text-muted mt-1">
+					<p className="font-body text-[18px] text-text-muted mt-1">
 						{ARCHETYPES[comboType.primary].name}/{ARCHETYPES[comboType.secondary].name} - Compatibility
 					</p>
 				</div>
 
-				{/* What you vibe with */}
-				{comboType.clickWith.length > 0 && (
-					<div className="bg-surface rounded-xl p-5">
-						<h3 className="font-display text-[26px] text-text mb-3">
-							What you vibe with
-						</h3>
-						<div className="space-y-3">
-							{comboType.clickWith.map((text, i) => (
-								<div key={i} className="flex items-start gap-3">
-									<span className="text-glow text-[16px] mt-1 shrink-0">✦</span>
-									<p className="font-body text-[17px] text-text-secondary leading-[1.5]">
-										{text}
-									</p>
-								</div>
-							))}
-						</div>
-					</div>
-				)}
-
-				{/* What drains you */}
-				{comboType.clashWith.length > 0 && (
-					<div className="bg-surface rounded-xl p-5">
-						<h3 className="font-display text-[26px] text-text mb-3">
-							What drains you
-						</h3>
-						<div className="space-y-3">
-							{comboType.clashWith.map((text, i) => (
-								<div key={i} className="flex items-start gap-3">
-									<span className="text-pulse text-[16px] mt-1 shrink-0">✦</span>
-									<p className="font-body text-[17px] text-text-secondary leading-[1.5]">
-										{text}
-									</p>
-								</div>
-							))}
-						</div>
-					</div>
-				)}
-
-				{/* Compatibility tiers: Best Bets, Good to Know, Might Work If... */}
+				{/* Compatibility tiers */}
 				{TIER_ORDER.map((tier) => {
 					const config = TIER_CONFIG[tier];
 					const typeIds = tiers[tier];
 
 					return (
 						<div key={tier} className="bg-surface rounded-xl p-5">
-							<h3 className="font-display text-[26px] text-text mb-4">
+							<h3 className="font-display text-[30px] text-text mb-5">
 								{config.heading}
 							</h3>
-							<div className="space-y-5">
+							<div className="space-y-6">
 								{typeIds.map((targetId) => {
 									const targetType = COMBO_TYPES[targetId];
 									const compatText = compatTexts[targetId];
 
 									return (
 										<div key={targetId}>
-											{/* Type name with emoji and archetype pair */}
-											<div className="flex items-center gap-2.5 mb-1.5">
-												<span className={`text-[14px] shrink-0 ${config.markerColour}`}>✦</span>
-												<span className="text-[20px]">{targetType.emoji}</span>
+											<div className="flex items-center gap-2.5 mb-2">
+												<span className="text-[24px]">{targetType.emoji}</span>
 												<div>
-													<p className="font-body text-[18px] text-text font-medium leading-tight">
+													<p className="font-display text-[22px] text-text leading-tight">
 														{targetType.name}
 													</p>
-													<p className="font-body text-[14px] text-text-muted">
+													<p className="font-body text-[16px] text-text-muted">
 														{ARCHETYPES[targetType.primary].name}/{ARCHETYPES[targetType.secondary].name}
 													</p>
 												</div>
 											</div>
-											{/* Compatibility description */}
-											<p className="font-body text-[16px] text-text-secondary leading-[1.6] ml-[30px]">
+											<p className="font-body text-[18px] text-text-secondary leading-[1.6]">
 												{compatText}
 											</p>
 										</div>

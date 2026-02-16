@@ -272,18 +272,18 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 									background: `linear-gradient(to bottom, ${primaryColour}, ${secondaryColour})`,
 								}}
 							/>
-							<p className="font-body text-[18px] leading-[1.6] text-text-secondary mb-4">
+							<p className="font-body text-[20px] leading-[1.6] text-text-secondary mb-4">
 								{result.comboType.description}
 							</p>
 							<div className="flex flex-wrap gap-2">
 								<span
-									className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[14px] font-body font-medium"
+									className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[16px] font-body font-medium"
 									style={{ backgroundColor: `${primaryInfo.color}20`, color: primaryInfo.color }}
 								>
 									{primaryInfo.emoji} Primary: {primaryInfo.name}
 								</span>
 								<span
-									className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[14px] font-body font-medium"
+									className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[16px] font-body font-medium"
 									style={{ backgroundColor: `${secondaryInfo.color}20`, color: secondaryInfo.color }}
 								>
 									{secondaryInfo.emoji} Secondary: {secondaryInfo.name}
@@ -293,7 +293,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 
 						{/* Vibe DNA Breakdown */}
 						<div className="bg-surface rounded-xl p-5">
-							<h3 className="font-display text-[28px] text-text mb-4">
+							<h3 className="font-display text-[32px] text-text mb-5">
 								Vibe DNA
 							</h3>
 							<div className="space-y-4">
@@ -308,9 +308,14 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 											animate={{ opacity: 1, x: 0 }}
 											transition={{ delay: 0.3 + i * 0.2, duration: 0.4 }}
 										>
-											<span className="text-[20px] w-7">{info.emoji}</span>
-											<span className="font-body text-[18px] text-text w-14">{info.name}</span>
-											<div className="flex-1 h-[10px] bg-surface-2 rounded-full overflow-hidden">
+											<span className="text-[22px] w-8">{info.emoji}</span>
+											<span
+												className="font-body text-[20px] w-16 font-medium"
+												style={{ color: info.color }}
+											>
+												{info.name}
+											</span>
+											<div className="flex-1 h-[12px] bg-surface-2 rounded-full overflow-hidden">
 												<motion.div
 													className="h-full rounded-full"
 													style={{ backgroundColor: info.color }}
@@ -319,7 +324,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 													transition={{ delay: 0.5 + i * 0.2, duration: 0.6, ease: 'easeOut' }}
 												/>
 											</div>
-											<span className="font-body text-[18px] text-text-secondary tabular-nums w-12 text-right">
+											<span className="font-body text-[20px] text-text-secondary tabular-nums w-14 text-right">
 												{pct}%
 											</span>
 										</motion.div>
@@ -330,7 +335,7 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 
 						{/* Karma Earned */}
 						<div className="bg-surface rounded-xl p-5">
-							<h3 className="font-display text-[28px] text-accent mb-4">
+							<h3 className="font-display text-[32px] text-accent mb-5">
 								YOU EARNED 100 PX
 							</h3>
 							<div className="space-y-3">
@@ -341,18 +346,21 @@ export function RevealAnimation({ result, onContinue }: RevealAnimationProps) {
 									return (
 										<div key={archetype} className="flex items-center justify-between">
 											<div className="flex items-center gap-2">
-												<span className="text-[16px]">{info.emoji}</span>
-												<span className="font-body text-[18px] text-text-secondary">
+												<span className="text-[18px]">{info.emoji}</span>
+												<span
+													className="font-body text-[20px] font-medium"
+													style={{ color: info.color }}
+												>
 													{info.name}
 												</span>
 												{isPrimary && (
-													<span className="text-[12px] px-2 py-0.5 rounded bg-surface-2 text-text-secondary font-body">
+													<span className="text-[13px] px-2 py-0.5 rounded bg-surface-2 text-text-secondary font-body">
 														primary
 													</span>
 												)}
 											</div>
 											<span
-												className="font-body text-[18px] font-medium tabular-nums"
+												className="font-body text-[20px] font-medium tabular-nums"
 												style={{ color: info.color }}
 											>
 												+{karmaPts} px
